@@ -1,3 +1,15 @@
+# require 'cocoapods-mtxx-bin/command/bin/initHotKey'
+require 'cocoapods-mtxx-bin/command/bin/init'
+require 'cocoapods-mtxx-bin/command/bin/archive'
+require 'cocoapods-mtxx-bin/command/bin/auto'
+require 'cocoapods-mtxx-bin/command/bin/code'
+require 'cocoapods-mtxx-bin/command/bin/update'
+require 'cocoapods-mtxx-bin/command/bin/install'
+# require 'cocoapods-mtxx-bin/command/bin/imy'
+require 'cocoapods-mtxx-bin/command/bin/repo'
+require 'cocoapods-mtxx-bin/command/bin/spec'
+require 'cocoapods-mtxx-bin/helpers'
+
 module Pod
   class Command
     # This is an example of a cocoapods plugin adding a top-level subcommand
@@ -18,26 +30,31 @@ module Pod
     #       in the `plugins.json` file, once your plugin is released.
     #
     class Bin < Command
-      self.summary = 'Short description of cocoapods-mtxx-bin.'
+      include CBin::SourcesHelper
+      include CBin::SpecFilesHelper
 
+      self.abstract_command = true
+
+      # self.default_subcommand = 'open'
+      self.summary = '组件二进制化插件'
       self.description = <<-DESC
-        Longer description of cocoapods-mtxx-bin.
+        组件二进制化插件。利用源码私有源与二进制私有源实现对组件依赖类型的切换。
       DESC
 
-      self.arguments = 'NAME'
-
       def initialize(argv)
-        @name = argv.shift_argument
+        require 'cocoapods-mtxx-bin/native'
+
+        @help = argv.flag?('help')
         super
+        # @env = argv.option('env') || 'dev'
+        # CBin.config.set_configuration_env(@env)
+        # UI.info "====== cocoapods-mtxx-bin #{CBin::VERSION} 版本 ========"
+        # UI.info "====== #{@env} 环境 ========"
       end
 
       def validate!
         super
-        help! 'A Pod name is required.' unless @name
-      end
-
-      def run
-        UI.puts "Add your implementation for the cocoapods-mtxx-bin plugin in #{__FILE__}"
+        banner! if @help
       end
     end
   end
