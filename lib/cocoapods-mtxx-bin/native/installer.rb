@@ -60,6 +60,7 @@ module Pod
       # in_processes: 10
       Parallel.each(root_specs.sort_by(&:name), in_threads: 4) do |spec|
         if pods_to_install.include?(spec.name)
+          if sandbox.manifest
           # if sandbox_state.changed.include?(spec.name) && sandbox.manifest
             current_version = spec.version
             previous_version = sandbox.manifest.version(spec.name)
@@ -80,9 +81,9 @@ module Pod
             if !has_changed_version && has_changed_repo
               title += " (source changed to `#{current_repo}` from `#{previous_spec_repo}`)"
             end
-          # else
-          #   title = "Installing #{spec}"
-          # end
+          else
+            title = "Installing #{spec}"
+          end
           UI.titled_section(title.green, title_options) do
             install_source_of_pod(spec.name)
           end

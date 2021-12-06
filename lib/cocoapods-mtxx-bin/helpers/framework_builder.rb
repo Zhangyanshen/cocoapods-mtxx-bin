@@ -44,7 +44,6 @@ module CBin
 
           # 支持的CPU架构
           support_arches = ios_architectures + ios_architectures_sim
-          return if support_arches.size == 0
 
           fwk = "build-#{support_arches.at(0)}/#{target_name}.framework"
           bundle = "build-#{support_arches.at(0)}/#{target_name}.bundle"
@@ -54,7 +53,7 @@ module CBin
             `cp -r #{fwk} #{framework.root_path}`
           end
 
-          return unless File.exist?("#{framework.root_path}/#{target_name}.framework")
+          # return unless File.exist?("#{framework.root_path}/#{target_name}.framework")
 
           # 拷贝bundle
           if File.exist?(bundle)
@@ -72,7 +71,7 @@ module CBin
 
           # 拷贝swiftmodule
           swift_module = "#{framework.root_path}/#{target_name}.framework/Modules/#{target_name}.swiftmodule"
-          return unless File.exist?("#{swift_module}")
+          # return unless File.exist?("#{swift_module}")
           if File.exist?("#{swift_module}")
             support_arches.shift
             support_arches.map do |arch|
@@ -210,11 +209,11 @@ module CBin
       def target_name
         #区分多平台，如配置了多平台，会带上平台的名字
         # 如libwebp-iOS
-        if @spec.available_platforms.count > 1
-          "#{@spec.name}-#{Platform.string_name(@spec.consumer(@platform).platform_name)}"
-        else
+        # if @spec.available_platforms.count > 1
+        #   "#{@spec.name}-#{Platform.string_name(@spec.consumer(@platform).platform_name)}"
+        # else
           @spec.name
-        end
+        # end
       end
 
       def xcodebuild(defines = '', args = '', build_dir = 'build', build_model = 'Debug')

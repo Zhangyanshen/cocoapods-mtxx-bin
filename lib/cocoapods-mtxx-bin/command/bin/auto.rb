@@ -48,6 +48,7 @@ module Pod
         end
 
         def validate!
+          # help!
           help! "未找到 podspec文件" unless @podspec
           super
         end
@@ -181,7 +182,7 @@ module Pod
         def find_podspec
           name = nil
           Pathname.pwd.children.each do |child|
-            puts child
+            # puts child
             if File.file?(child)
               if child.extname == '.podspec'
                   name = File.basename(child)

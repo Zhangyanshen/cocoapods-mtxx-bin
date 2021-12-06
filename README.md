@@ -4,8 +4,8 @@ A description of cocoapods-mtxx-bin.
 
 ## Installation
 
-    $ gem install cocoapods-mtxx-bin
+    $ sudo gem install cocoapods-mtxx-bin
 
 ## Usage
 
-    $ pod spec bin POD_NAME
+    $ pod bin --help

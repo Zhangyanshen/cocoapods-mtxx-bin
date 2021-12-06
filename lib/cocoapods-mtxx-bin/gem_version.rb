@@ -1,4 +1,4 @@
-module CocoapodsMtxxBin
+module CBin
   VERSION = "0.0.1"
 end
 

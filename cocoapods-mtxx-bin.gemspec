@@ -5,7 +5,7 @@ require 'cocoapods-mtxx-bin/gem_version.rb'
 
 Gem::Specification.new do |spec|
   spec.name          = 'cocoapods-mtxx-bin'
-  spec.version       = CocoapodsMtxxBin::VERSION
+  spec.version       = CBin::VERSION
   spec.authors       = ['Jensen']
   spec.email         = ['zys2@meitu.com']
   spec.description   = %q{cocoapods-mtxx-bin is a plugin which helps develpers switching pods between source code and binary.}

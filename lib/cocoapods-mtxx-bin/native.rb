@@ -1,4 +1,5 @@
 require 'cocoapods'
+require 'cocoapods-mtxx-bin/gem_version'
 
 if Pod.match_version?('~> 1.4')
   require 'cocoapods-mtxx-bin/native/podfile'
