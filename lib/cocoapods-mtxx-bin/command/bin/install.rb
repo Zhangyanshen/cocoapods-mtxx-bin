@@ -6,7 +6,7 @@ module Pod
       class Install < Bin
         include Pod
 
-        self.summary = 'pod install拦截器'
+        self.summary = 'pod install 拦截器'
 
         self.description = <<-DESC
           pod install 拦截器，会加载本地Podfile_local文件

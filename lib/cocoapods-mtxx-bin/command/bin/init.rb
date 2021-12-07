@@ -6,8 +6,7 @@ module Pod
       class Init < Bin
         self.summary = '初始化插件'
         self.description = <<-DESC
-          创建yml配置文件，保存插件需要的配置信息，
-          如源码podspec仓库、二进制下载地址等
+          创建yml配置文件，保存插件需要的配置信息，如源码podspec仓库、二进制下载地址等
         DESC
 
         def self.options

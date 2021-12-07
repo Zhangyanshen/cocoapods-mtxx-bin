@@ -15,9 +15,9 @@ module Pod
 
         @@missing_binary_specs = []
 
-        self.summary = '将组件归档为静态库 .a 或 .framework'
+        self.summary = '将组件归档为 .a 或 .framework'
         self.description = <<-DESC
-          将组件归档为静态库 .a 或 .framework ，仅支持iOS平台，
+          将组件归档为 .a 或 .framework ，仅支持iOS平台，
           此静态framework不包含依赖组件的symbol
         DESC
 

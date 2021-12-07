@@ -60,9 +60,9 @@ module CBin
       unless code_spec
         raise Pod::Informative, '没有二进制 podspec 的情况下，必须要提供源码 podspec.'
      end
-      if code_spec.subspecs.any? && template_spec.nil?
-        raise Pod::Informative, '拥有 subspec 的组件，在生成二进制 podspec 时，必须要提供模版 podspec.'
-     end
+     #  if code_spec.subspecs.any? && template_spec.nil?
+     #    raise Pod::Informative, '拥有 subspec 的组件，在生成二进制 podspec 时，必须要提供模版 podspec.'
+     # end
 
       Dir.chdir(CBin::Config::Builder.instance.root_dir) do
         @spec_creator = CBin::SpecificationSource::Creator.new(code_spec)

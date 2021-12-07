@@ -37,8 +37,10 @@ module Pod
 
       # self.default_subcommand = 'open'
       self.summary = '组件二进制化插件'
-      self.description = <<-DESC
-        组件二进制化插件。利用源码私有源与二进制私有源实现对组件依赖类型的切换。
+      self.description = <<-DESC.strip_heredoc
+        组件二进制化插件
+        
+        利用源码私有源与二进制私有源实现对组件依赖类型的切换
       DESC
 
       def initialize(argv)

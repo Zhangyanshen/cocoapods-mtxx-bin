@@ -10,7 +10,7 @@ module Pod
         include Pod
         include Pod::Podfile::DSL
 
-        self.summary = 'pod update拦截器'
+        self.summary = 'pod update 拦截器'
 
         self.description = <<-DESC
           pod update 拦截器，会加载本地Podfile_local文件

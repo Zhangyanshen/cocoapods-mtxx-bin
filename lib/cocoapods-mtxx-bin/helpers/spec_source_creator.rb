@@ -1,5 +1,3 @@
-
-
 require 'cocoapods'
 require 'cocoapods-mtxx-bin/config/config'
 
@@ -183,6 +181,28 @@ module CBin
         selected_platforms = platforms.select { |k, _v| @platforms.include?(k) }
         spec_hash['platforms'] = selected_platforms.empty? ? platforms : selected_platforms
 
+        # subspecs
+        if spec_hash['subspecs'] && spec_hash['subspecs'].size > 0
+          bin_subspec = {
+            'name' => 'Binary',
+            'source_files' => spec_hash['source_files'],
+            'public_header_files' => spec_hash['public_header_files'],
+            'vendored_frameworks' => spec_hash['vendored_frameworks'],
+            'resources' => spec_hash['resources']
+          }
+          spec_hash['subspecs'] << bin_subspec
+          spec_hash['subspecs'].map do |subspec|
+            next if subspec['name'] == 'Binary'
+            subspec.delete('source_files')
+            subspec.delete('public_header_files')
+            if subspec['dependencies']
+              subspec['dependencies']["#{code_spec.root.name}/Binary"] = []
+            else
+              subspec['dependencies'] = {"#{code_spec.root.name}/Binary": []}
+            end
+          end
+        end
+
         @spec = Pod::Specification.from_hash(spec_hash)
         @spec.description = <<-EOF
          「converted automatically by plugin cocoapods-mtxx-bin @美图 - zys」
@@ -203,10 +223,6 @@ module CBin
       def framework_contents(name)
         # ["#{code_spec.root.name}.framework", "#{code_spec.root.name}.framework/Versions/A"].map { |path| "#{path}/#{name}" }
         ["#{code_spec.root.name}.framework"]
-      end
-
-      def binary_source_files
-        { http: format(CBin.config.binary_download_url, code_spec.root.name, code_spec.version), type: CBin.config.download_file_type }
       end
 
       def binary_source_files
