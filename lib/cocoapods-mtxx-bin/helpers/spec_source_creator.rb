@@ -193,13 +193,10 @@ module CBin
           spec_hash['subspecs'] << bin_subspec
           spec_hash['subspecs'].map do |subspec|
             next if subspec['name'] == 'Binary'
-            subspec.delete('source_files')
-            subspec.delete('public_header_files')
-            if subspec['dependencies']
-              subspec['dependencies']["#{code_spec.root.name}/Binary"] = []
-            else
-              subspec['dependencies'] = {"#{code_spec.root.name}/Binary": []}
-            end
+            # 处理单个subspec
+            handle_single_subspec(subspec)
+            # 递归处理subspec
+            handle_subspecs(subspec['subspecs'])
           end
         end
 
@@ -209,6 +206,28 @@ module CBin
           #{@spec.description}
         EOF
         @spec
+      end
+
+      # 递归处理subspecs
+      def handle_subspecs(subspecs)
+        return unless subspecs && subspecs.size > 0
+        subspecs.map do |s|
+          # 处理单个subspec
+          handle_single_subspec(s)
+          # 递归处理
+          handle_subspecs(s['subspecs'])
+        end
+      end
+
+      # 处理单个subspec
+      def handle_single_subspec(subspec)
+        subspec.delete('source_files')
+        subspec.delete('public_header_files')
+        if subspec['dependencies']
+          subspec['dependencies']["#{code_spec.root.name}/Binary"] = []
+        else
+          subspec['dependencies'] = {"#{code_spec.root.name}/Binary": []}
+        end
       end
 
       # "source"字段
