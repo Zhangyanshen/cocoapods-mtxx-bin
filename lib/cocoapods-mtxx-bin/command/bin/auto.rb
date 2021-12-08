@@ -15,6 +15,7 @@ module Pod
         ]
         def self.options
           [
+              ['--push-source-podspec', '是否上传源码podspec'],
               ['--code-dependencies', '使用源码依赖'],
               ['--allow-prerelease', '允许使用 prerelease 的版本'],
               ['--no-clean', '保留构建中间产物'],
@@ -33,6 +34,7 @@ module Pod
 
           @podspec = argv.shift_argument || find_podspec
 
+          @push_source_podspec = argv.flag?('push-source-podspec')
           @code_dependencies = argv.flag?('code-dependencies')
           @allow_prerelease = argv.flag?('allow-prerelease')
           @framework_output = argv.flag?('framework-output', false )
@@ -91,6 +93,11 @@ module Pod
           UI.section("\nUpdating Spec Repositories\n".yellow) do
             Pod::Command::Bin::Repo::Update.new(CLAide::ARGV.new([])).run
           end
+
+          # 上传源码podspec
+          UI.section("Pushing source podspec for #{@specification.name}") do
+            Pod::Command::Bin::Repo::Push.new(CLAide::ARGV.new(['--loose-options'])).run
+          end if @push_source_podspec
 
         end
 

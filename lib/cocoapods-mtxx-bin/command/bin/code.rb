@@ -3,7 +3,7 @@ module Pod
   class Command
     class Bin < Command
       class Code < Bin
-        self.summary = '二进制切换到源码进行调试（TODO）'
+        self.summary = '二进制切换到源码进行调试（建设中...）'
 
         self.description = <<-DESC
           通过将二进制对应源码放置在临时目录中，让二进制出现断点时可以跳到对应的源码，方便调试。

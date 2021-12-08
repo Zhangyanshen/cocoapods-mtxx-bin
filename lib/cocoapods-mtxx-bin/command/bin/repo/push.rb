@@ -55,9 +55,9 @@ module Pod
 
                   if @loose_options
                     argvs += ['--allow-warnings', '--use-json']
-                    if code_spec&.all_dependencies&.any?
-                      argvs << '--use-libraries'
-                    end
+                    # if code_spec&.all_dependencies&.any?
+                    #   argvs << '--use-libraries'
+                    # end
                   end
 
                   push = Pod::Command::Repo::Push.new(CLAide::ARGV.new(argvs))

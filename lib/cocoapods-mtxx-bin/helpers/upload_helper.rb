@@ -69,7 +69,6 @@ EOF
         res
       end
 
-
       # 上传二进制 podspec
       def push_binary_repo(binary_podsepc_json)
         argvs = [
