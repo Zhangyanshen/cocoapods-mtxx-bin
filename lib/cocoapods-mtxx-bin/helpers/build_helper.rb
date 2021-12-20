@@ -20,7 +20,8 @@ module CBin
                      zip,
                      rootSpec,
                      skip_archive = false,
-                     build_model="Release")
+                     build_model="Release",
+                     installer = nil)
         @spec = spec
         @platform = platform
         @build_model = build_model
@@ -29,6 +30,7 @@ module CBin
         @skip_archive = skip_archive
         @framework_output = framework_output
         @zip = zip
+        @installer = installer
 
         @framework_path
       end
@@ -36,7 +38,7 @@ module CBin
       # 构建.a或.framework
       def build
         unless @skip_archive
-          unless  CBin::Build::Utils.is_framework(@spec)
+          unless CBin::Build::Utils.is_framework(@spec)
             build_static_library
             zip_static_library
           else
@@ -50,9 +52,9 @@ module CBin
       def build_static_framework
         UI.section("Building static framework #{@spec}") do
           source_dir = Dir.pwd
-          file_accessor = Sandbox::FileAccessor.new(Pathname.new('.').expand_path, @spec.consumer(@platform))
+          # file_accessor = Sandbox::FileAccessor.new(Pathname.new('.').expand_path, @spec.consumer(@platform))
           Dir.chdir(workspace_directory) do
-            builder = CBin::Framework::Builder.new(@spec, file_accessor, @platform, source_dir, @isRootSpec, @build_model )
+            builder = CBin::Framework::Builder.new(@spec, @installer, @platform, source_dir, @isRootSpec, @build_model )
             # 编译当前库
             @@build_defines = builder.build if @isRootSpec
             begin

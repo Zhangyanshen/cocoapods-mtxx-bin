@@ -35,7 +35,9 @@ module Pod
             plugin(*[name, options].compact)
           end
 
-          use_frameworks!(generator.configuration.use_frameworks?)
+          # use_frameworks!(generator.use_frameworks_value)
+          # 强制生成 static framework
+          use_frameworks!({:linkage=>:static, :packaging=>:framework})
 
           if (supported_swift_versions = generator.supported_swift_versions)
             supports_swift_versions(supported_swift_versions)

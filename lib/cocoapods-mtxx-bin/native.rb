@@ -20,5 +20,6 @@ if Pod.match_version?('~> 1.4')
   require 'cocoapods-mtxx-bin/native/file_accessor'
   require 'cocoapods-mtxx-bin/native/pod_target_installer'
   require 'cocoapods-mtxx-bin/native/target_validator'
+  require 'cocoapods-mtxx-bin/native/gen'
 
 end

@@ -72,8 +72,10 @@ module Pod
 
           sources_sepc = Array.new
           sources_sepc << @spec
+          # 如果有 --all-make 选项，则打包依赖组件
           sources_sepc.concat(build_dependencies) if @all_make
 
+          # 返回所有打包二进制组件的podspec
           sources_sepc
         end
 
@@ -85,7 +87,8 @@ module Pod
                                             @zip,
                                             @spec,
                                             CBin::Config::Builder.instance.white_pod_list.include?(@spec.name),
-                                            @config)
+                                            @config,
+                                            @installers.size > 0 ? @installers[0] : nil)
           builder.build
           builder.clean_workspace if @clean && !@all_make
         end
@@ -96,8 +99,8 @@ module Pod
           #如果没要求，就清空依赖库数据
           sources_sepc = []
           @@missing_binary_specs.uniq.each do |spec|
-            next if spec.name.include?('/')
-            next if spec.name == @spec.name
+            next if spec.name.include?('/') # 过滤subspec
+            next if spec.name == @spec.name  # 过滤当前库
             #过滤白名单
             next if CBin::Config::Builder.instance.white_pod_list.include?(spec.name)
             #过滤 git
@@ -126,7 +129,8 @@ module Pod
                                                 @zip,
                                                 @spec,
                                                 false ,
-                                                @config)
+                                                @config,
+                                                nil )
               builder.build
             rescue Object => exception
               UI.puts exception
@@ -157,20 +161,21 @@ module Pod
                   "--sources=#{sources_option(@code_dependencies, @sources)},https:\/\/cdn.cocoapods.org",
                   "--gen-directory=#{CBin::Config::Builder.instance.gen_dir}",
                   '--clean',
-                  '--use-modular-headers',
                   *@additional_args
                 ]
 
                 podfile= File.join(Pathname.pwd, "Podfile")
                 if File.exist?(podfile)
                   argvs += ['--use-podfile']
+                else
+                  argvs += ['--use-modular-headers']
                 end
                 
                 argvs << spec_file if spec_file
 
                 gen = Pod::Command::Gen.new(CLAide::ARGV.new(argvs))
                 gen.validate!
-                gen.run
+                @installers = gen.run
             end
           end
         end

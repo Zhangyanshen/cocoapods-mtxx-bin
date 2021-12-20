@@ -138,7 +138,12 @@ module CBin
         # license | resource_bundles | vendored_libraries
 
         # Project Linkin
-        @spec.vendored_frameworks = "#{code_spec.root.name}.framework"
+        fwks_path = "#{CBin::Config::Builder.instance.gen_dir}/#{code_spec.root.name}/ios/#{code_spec.root.name}.framework/fwks"
+        fwks = ["#{code_spec.root.name}.framework"]
+        if File.exist?(fwks_path)
+          fwks << "#{code_spec.root.name}.framework/fwks/*.framework"
+        end
+        @spec.vendored_frameworks = fwks
 
         # Resources
         extnames = []
@@ -223,11 +228,16 @@ module CBin
       def handle_single_subspec(subspec)
         subspec.delete('source_files')
         subspec.delete('public_header_files')
+        subspec.delete('vendored_frameworks')
+        subspec.delete('vendored_libraries')
         if subspec['dependencies']
           subspec['dependencies']["#{code_spec.root.name}/Binary"] = []
         else
           subspec['dependencies'] = {"#{code_spec.root.name}/Binary": []}
         end
+        # if subspec['vendored_frameworks']
+        #   subspec['vendored_frameworks'] = "#{code_spec.root.name}.framework/fwks/*.framework"
+        # end
       end
 
       # "source"字段

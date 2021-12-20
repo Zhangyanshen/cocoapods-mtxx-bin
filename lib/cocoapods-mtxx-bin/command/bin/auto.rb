@@ -64,7 +64,7 @@ module Pod
           fail_push_specs = []
           sources_sepc.uniq.each do |spec|
             begin
-              # 上传二进制文件及podspec
+              # 上传所有打包好的二进制文件及podspec
               fail_push_specs << spec unless CBin::Upload::Helper.new(spec,@code_dependencies,@sources).upload
             rescue  Object => exception
               UI.puts exception
