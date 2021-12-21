@@ -201,7 +201,9 @@ module CBin
         # 区分多平台，如配置了多平台，会带上平台的名字
         # 如libwebp-iOS
         if @spec.available_platforms.count > 1
-          "#{@spec.name}-#{Platform.string_name(@spec.consumer(@platform).platform_name)}"
+          name = "#{@spec.name}-#{Platform.string_name(@spec.consumer(@platform).platform_name)}"
+          return name if @installer && @installer.pod_targets.map { |pod| pod.name }.include?(name)
+          @spec.name
         else
           @spec.name
         end
