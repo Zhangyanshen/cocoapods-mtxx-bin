@@ -49,7 +49,7 @@ module CBin
       # 拷贝最终产物
       def copy_target_product
         framework
-        fwk = "#{build_device_dir}/#{@spec.name}.framework"
+        fwk = "#{build_device_dir}/#{framework_name}.framework"
         `cp -r #{fwk} #{framework.root_path}`
       end
 
@@ -57,7 +57,7 @@ module CBin
       def copy_dynamic_libs
         dynamic_libs = vendored_dynamic_libraries
         if dynamic_libs && dynamic_libs.size > 0
-          des_dir = "#{build_device_dir}/#{@spec.name}.framework/fwks"
+          des_dir = "#{build_device_dir}/#{framework_name}.framework/fwks"
           FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
           dynamic_libs.map do |lib|
             `cp -r #{lib} #{des_dir}`
@@ -67,9 +67,9 @@ module CBin
 
       # 拷贝swiftmodule
       def copy_swiftmodules
-        swift_module = "#{build_device_dir}/#{@spec.name}.framework/Modules/#{@spec.name}.swiftmodule"
+        swift_module = "#{build_device_dir}/#{framework_name}.framework/Modules/#{framework_name}.swiftmodule"
         if File.exist?(swift_module)
-          src_swift = "#{build_sim_dir}/#{@spec.name}.framework/Modules/#{@spec.name}.swiftmodule"
+          src_swift = "#{build_sim_dir}/#{framework_name}.framework/Modules/#{framework_name}.swiftmodule"
           `cp -af #{src_swift}/* #{swift_module}`
           `cp -af #{src_swift}/Project/* #{swift_module}/Project`
         end
@@ -77,9 +77,12 @@ module CBin
 
       # 拷贝资源文件
       def copy_resources
-        bundle = "#{build_device_dir}/#{@spec.name}.bundle"
+        bundle = "#{build_device_dir}/#{framework_name}.bundle"
+        unless File.exist?(bundle)
+          bundle = "#{build_device_dir}/#{@spec.name}.bundle"
+        end
         if File.exist?(bundle)
-          `cp -r #{bundle} #{build_device_dir}/#{@spec.name}.framework`
+          `cp -r #{bundle} #{build_device_dir}/#{framework_name}.framework`
         end
       end
 
@@ -96,7 +99,7 @@ module CBin
       # 合并真机和模拟器
       def merge_device_sim
         libs = static_libs_in_sandbox + static_libs_in_sandbox(build_sim_dir)
-        output = "#{build_device_dir}/#{@spec.name}.framework/#{@spec.name}"
+        output = "#{build_device_dir}/#{framework_name}.framework/#{framework_name}"
         `lipo -create -output #{output} #{libs.join(' ')}`
       end
 
@@ -104,11 +107,11 @@ module CBin
       def merge_static_libs_for_device
         static_libs = static_libs_in_sandbox + vendored_static_libraries
         libs = ios_architectures.map do |arch|
-          library = "#{build_device_dir}/package-#{@spec.name}-#{arch}.a"
+          library = "#{build_device_dir}/package-#{framework_name}-#{arch}.a"
           `libtool -arch_only #{arch} -static -o #{library} #{static_libs.join(' ')}`
           library
         end
-        output = "#{build_device_dir}/#{@spec.name}.framework/#{@spec.name}"
+        output = "#{build_device_dir}/#{framework_name}.framework/#{framework_name}"
         `lipo -create -output #{output} #{libs.join(' ')}`
       end
 
@@ -116,11 +119,11 @@ module CBin
       def merge_static_libs_for_sim
         static_libs = static_libs_in_sandbox(build_sim_dir) + vendored_static_libraries
         libs = ios_architectures_sim.map do |arch|
-          library = "#{build_sim_dir}/package-#{@spec.name}-#{arch}.a"
+          library = "#{build_sim_dir}/package-#{framework_name}-#{arch}.a"
           `libtool -arch_only #{arch} -static -o #{library} #{static_libs.join(' ')}`
           library
         end
-        output = "#{build_sim_dir}/#{@spec.name}.framework/#{@spec.name}"
+        output = "#{build_sim_dir}/#{framework_name}.framework/#{framework_name}"
         `lipo -create -output #{output} #{libs.join(' ')}`
       end
 
@@ -136,7 +139,7 @@ module CBin
 
       # 获取静态库
       def vendored_static_libraries
-        return [] if @file_accessor.nil?
+        return [] if @file_accessors.nil?
         file_accessors = @file_accessors
         libs = file_accessors.flat_map(&:vendored_static_frameworks).map { |f| f + f.basename('.*') } || []
         libs += file_accessors.flat_map(&:vendored_static_libraries)
@@ -146,7 +149,7 @@ module CBin
 
       # 获取动态库
       def vendored_dynamic_libraries
-        return [] if @file_accessor.nil?
+        return [] if @file_accessors.nil?
         file_accessors = @file_accessors
         libs = file_accessors.flat_map(&:vendored_dynamic_frameworks) || []
         libs += file_accessors.flat_map(&:vendored_dynamic_libraries)
@@ -156,7 +159,13 @@ module CBin
 
       # 获取静态库
       def static_libs_in_sandbox(build_dir = build_device_dir)
-        Dir.glob("#{build_dir}/#{@spec.name}.framework/#{@spec.name}")
+        Dir.glob("#{build_dir}/#{framework_name}.framework/#{framework_name}")
+      end
+
+      # 最终生成的framework的name
+      # 先判断是否有module_name，再判断是否有header_dir，如果都没有，使用name
+      def framework_name
+        @spec.module_name
       end
 
       # 真机CPU架构
@@ -233,7 +242,7 @@ module CBin
 
       def framework
         @framework ||= begin
-                         framework = Framework.new(@spec.name, @platform.name.to_s)
+                         framework = Framework.new(framework_name, @platform.name.to_s)
                          framework.make
                          framework
                        end

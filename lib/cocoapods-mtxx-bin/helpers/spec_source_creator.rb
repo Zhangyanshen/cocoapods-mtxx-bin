@@ -138,10 +138,10 @@ module CBin
         # license | resource_bundles | vendored_libraries
 
         # Project Linkin
-        fwks_path = "#{CBin::Config::Builder.instance.gen_dir}/#{code_spec.root.name}/ios/#{code_spec.root.name}.framework/fwks"
-        fwks = ["#{code_spec.root.name}.framework"]
+        fwks_path = "#{CBin::Config::Builder.instance.gen_dir}/#{code_spec.root.name}/ios/#{code_spec.module_name}.framework/fwks"
+        fwks = ["#{code_spec.module_name}.framework"]
         if File.exist?(fwks_path)
-          fwks << "#{code_spec.root.name}.framework/fwks/*.framework"
+          fwks << "#{code_spec.module_name}.framework/fwks/*.framework"
         end
         @spec.vendored_frameworks = fwks
 
@@ -251,7 +251,7 @@ module CBin
 
       def framework_contents(name)
         # ["#{code_spec.root.name}.framework", "#{code_spec.root.name}.framework/Versions/A"].map { |path| "#{path}/#{name}" }
-        ["#{code_spec.root.name}.framework"]
+        ["#{code_spec.module_name}.framework"]
       end
 
       def binary_source_files
