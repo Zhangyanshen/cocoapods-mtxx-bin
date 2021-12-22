@@ -147,7 +147,7 @@ module CBin
           library
         end
         output = "#{build_device_dir}/#{framework_name}.framework/#{framework_name}"
-        `lipo -create -output #{output} #{libs.join(' ')}`
+        `lipo -create -output #{output} #{libs.join(' ')}` if libs.size > 0
       end
 
       # 合并模拟器静态库
@@ -159,7 +159,7 @@ module CBin
           library
         end
         output = "#{build_sim_dir}/#{framework_name}.framework/#{framework_name}"
-        `lipo -create -output #{output} #{libs.join(' ')}`
+        `lipo -create -output #{output} #{libs.join(' ')}` if libs.size > 0
       end
 
       # 存放资源的目录

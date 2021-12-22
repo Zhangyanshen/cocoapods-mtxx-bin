@@ -15,7 +15,7 @@ module Pod
 
         @@missing_binary_specs = []
 
-        self.summary = '将组件归档为 .a 或 .framework（目前仅支持 .framework）'
+        self.summary = '将组件归档为 .a 或 .framework（目前仅支持静态framework）'
         self.description = <<-DESC
           将组件归档为 .a 或 .framework ，仅支持iOS平台
 

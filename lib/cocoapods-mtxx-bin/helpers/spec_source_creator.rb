@@ -162,11 +162,13 @@ module CBin
         # Source Code
         @spec.source_files = "#{code_spec.module_name}.framework/Headers/*"
         @spec.public_header_files = "#{code_spec.module_name}.framework/Headers/*"
+        @spec.private_header_files = "#{code_spec.module_name}.framework/PrivateHeaders/*"
 
         # Unused for binary
         spec_hash = @spec.to_hash
         # spec_hash.delete('license')
         # spec_hash.delete('source_files')
+        spec_hash.delete('project_header_files')
         spec_hash.delete('resource_bundles')
         spec_hash.delete('exclude_files')
         spec_hash.delete('preserve_paths')
@@ -193,7 +195,9 @@ module CBin
             'name' => 'Binary',
             'source_files' => spec_hash['source_files'],
             'public_header_files' => spec_hash['public_header_files'],
+            'private_header_files' => spec_hash['private_header_files'],
             'vendored_frameworks' => spec_hash['vendored_frameworks'],
+            'vendored_libraries' => spec_hash['vendored_libraries'],
             'resources' => spec_hash['resources']
           }
           spec_hash['subspecs'] << bin_subspec
@@ -229,18 +233,19 @@ module CBin
       def handle_single_subspec(subspec)
         subspec.delete('source_files')
         subspec.delete('public_header_files')
+        subspec.delete('project_header_files')
+        subspec.delete('private_header_files')
         subspec.delete('vendored_frameworks')
         subspec.delete('vendored_libraries')
         subspec.delete('resource_bundles')
         subspec.delete('resources')
+        subspec.delete('exclude_files')
+        subspec.delete('preserve_paths')
         if subspec['dependencies']
           subspec['dependencies']["#{code_spec.root.name}/Binary"] = []
         else
           subspec['dependencies'] = {"#{code_spec.root.name}/Binary": []}
         end
-        # if subspec['vendored_frameworks']
-        #   subspec['vendored_frameworks'] = "#{code_spec.root.name}.framework/fwks/*.framework"
-        # end
       end
 
       # "source"字段
