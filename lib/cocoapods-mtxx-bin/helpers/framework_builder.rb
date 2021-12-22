@@ -33,7 +33,7 @@ module CBin
         # 合并静态库
         merge_static_libs
         # 拷贝资源文件
-        copy_resources
+        copy_all_resources
         # 拷贝swiftmodule
         copy_swiftmodules
         # 拷贝动态库
@@ -57,7 +57,7 @@ module CBin
       def copy_dynamic_libs
         dynamic_libs = vendored_dynamic_libraries
         if dynamic_libs && dynamic_libs.size > 0
-          des_dir = "#{build_device_dir}/#{framework_name}.framework/fwks"
+          des_dir = dynamic_libs_des_dir
           FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
           dynamic_libs.map do |lib|
             `cp -r #{lib} #{des_dir}`
@@ -76,14 +76,49 @@ module CBin
       end
 
       # 拷贝资源文件
-      def copy_resources
-        bundle = "#{build_device_dir}/#{framework_name}.bundle"
-        unless File.exist?(bundle)
-          bundle = "#{build_device_dir}/#{@spec.name}.bundle"
+      def copy_all_resources
+        # 拷贝resource_bundles
+        copy_resource_bundles
+        # 拷贝resources/resource
+        copy_other_resources
+      end
+
+      # 拷贝resource_bundles
+      def copy_resource_bundles
+        bundles = resource_bundles
+        return if bundles.size == 0
+        des_dir = resources_des_dir
+        # FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
+        bundles.map do |bundle|
+          `cp -r #{bundle} #{des_dir}`
         end
-        if File.exist?(bundle)
-          `cp -r #{bundle} #{build_device_dir}/#{framework_name}.framework`
+      end
+
+      # 拷贝resources/resource
+      def copy_other_resources
+        resources = other_resources
+        return if resources.size == 0
+        des_dir = resources_des_dir
+        # FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
+        resources.map do |res|
+          `cp -r #{res} #{des_dir}`
         end
+      end
+
+      # 获取podspec中的resource_bundles
+      def resource_bundles
+        return [] if @file_accessors.nil?
+        resource_bundles = @file_accessors.flat_map(&:resource_bundles)
+        return [] if resource_bundles.nil? || resource_bundles.size == 0
+        resource_bundles.compact.flat_map(&:keys).map { |key| "#{build_device_dir}/#{key}.bundle" }
+      end
+
+      # 获取podspec中resource/resources
+      def other_resources
+        return [] if @file_accessors.nil?
+        resources = @file_accessors.flat_map(&:resources)
+        return [] if resources.nil? || resources.size == 0
+        resources.compact.map(&:to_s)
       end
 
       # 合并静态库
@@ -125,6 +160,16 @@ module CBin
         end
         output = "#{build_sim_dir}/#{framework_name}.framework/#{framework_name}"
         `lipo -create -output #{output} #{libs.join(' ')}`
+      end
+
+      # 存放资源的目录
+      def resources_des_dir
+        "#{build_device_dir}/#{framework_name}.framework"
+      end
+
+      # 存放动态库的目录
+      def dynamic_libs_des_dir
+        "#{build_device_dir}/#{framework_name}.framework/fwks"
       end
 
       # 真机路径

@@ -141,11 +141,12 @@ module CBin
         fwks_path = "#{CBin::Config::Builder.instance.gen_dir}/#{code_spec.root.name}/ios/#{code_spec.module_name}.framework/fwks"
         fwks = ["#{code_spec.module_name}.framework"]
         if File.exist?(fwks_path)
-          fwks << "#{code_spec.module_name}.framework/fwks/*.framework"
+          fwks << "#{code_spec.module_name}.framework/fwks/*"
         end
         @spec.vendored_frameworks = fwks
 
         # Resources
+        # @spec.resources = "#{code_spec.module_name}.framework/resources/*"
         extnames = []
         extnames << '*.bundle' if code_spec_consumer.resource_bundles.any?
         if code_spec_consumer.resources.any?
@@ -159,8 +160,8 @@ module CBin
         @spec.source = binary_source
 
         # Source Code
-        @spec.source_files = framework_contents('').flat_map { |r| "#{r}/Headers/*" }
-        @spec.public_header_files = framework_contents('').flat_map { |r| "#{r}/Headers/*" }
+        @spec.source_files = "#{code_spec.module_name}.framework/Headers/*"
+        @spec.public_header_files = "#{code_spec.module_name}.framework/Headers/*"
 
         # Unused for binary
         spec_hash = @spec.to_hash
@@ -230,6 +231,8 @@ module CBin
         subspec.delete('public_header_files')
         subspec.delete('vendored_frameworks')
         subspec.delete('vendored_libraries')
+        subspec.delete('resource_bundles')
+        subspec.delete('resources')
         if subspec['dependencies']
           subspec['dependencies']["#{code_spec.root.name}/Binary"] = []
         else
