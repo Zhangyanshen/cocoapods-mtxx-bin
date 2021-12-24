@@ -114,8 +114,9 @@ module Pod
               next if spec_git_res
             end
             UI.warn "#{spec.name}.podspec 带有 vendored_frameworks 字段，请检查是否有效！！！" if spec.attributes_hash['vendored_frameworks']
-            next if spec.attributes_hash['vendored_frameworks'] && @spec.name != spec.name #过滤带有vendored_frameworks的
-            next if spec.attributes_hash['ios.vendored_frameworks'] && @spec.name != spec.name #过滤带有vendored_frameworks的
+            UI.warn "#{spec.name}.podspec 带有 vendored_libraries 字段，请检查是否有效！！！" if spec.attributes_hash['vendored_libraries']
+            next if (spec.attributes_hash['vendored_frameworks'] || spec.attributes_hash['vendored_libraries']) && @spec.name != spec.name
+            next if (spec.attributes_hash['ios.vendored_frameworks'] || spec.attributes_hash['ios.vendored_libraries']) && @spec.name != spec.name
             #获取没有制作二进制版本的spec集合
             sources_sepc << spec
           end

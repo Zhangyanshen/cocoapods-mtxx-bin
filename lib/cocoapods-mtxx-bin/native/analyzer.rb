@@ -49,7 +49,37 @@ module Pod
         end
       end
 
+      # 解决 dep.name = xxx/binary 时，all_specs[dep.name] 返回nil，导致调用 each 方法报错
+      alias old_dependencies_for_specs dependencies_for_specs
+      def dependencies_for_specs(specs, platform, all_specs)
+        dependent_specs = {
+          :debug => Set.new,
+          :release => Set.new,
+        }
 
+        if !specs.empty? && !all_specs.empty?
+          specs.each do |s|
+            s.dependencies(platform).each do |dep|
+              all_specs[dep.name].each do |spec|
+                if spec.non_library_specification?
+                  if s.test_specification? && spec.name == s.consumer(platform).app_host_name && spec.app_specification?
+                    # This needs to be handled separately, since we _don't_ want to treat this as a "normal" dependency
+                    next
+                  end
+                  raise Informative, "`#{s}` depends upon `#{spec}`, which is a `#{spec.spec_type}` spec."
+                end
+
+                dependent_specs.each do |config, set|
+                  next unless s.dependency_whitelisted_for_configuration?(dep, config)
+                  set << spec
+                end
+              end unless all_specs[dep.name].nil? # 解决 dep.name = xxx/binary 时，all_specs[dep.name]返回的是nil，导致调用 each 方法报错
+            end
+          end
+        end
+
+        Hash[dependent_specs.map { |k, v| [k, (v - specs).group_by(&:root)] }].freeze
+      end
     end
   end
 end

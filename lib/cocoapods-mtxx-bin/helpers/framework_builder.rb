@@ -38,6 +38,8 @@ module CBin
         copy_swiftmodules
         # 拷贝动态库
         copy_dynamic_libs
+        # 拷贝xcframework
+        copy_xcframeworks
         # 拷贝最终产物
         copy_target_product
         # 返回Framework目录
@@ -53,15 +55,23 @@ module CBin
         `cp -r #{fwk} #{framework.root_path}`
       end
 
+      # 拷贝xcframework
+      def copy_xcframeworks
+        xcframeworks = vendored_xcframeworks
+        unless xcframeworks.empty?
+          des_dir = dynamic_libs_des_dir
+          FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
+          xcframeworks.map { |xcf| `cp -r #{xcf} #{des_dir}` }
+        end
+      end
+
       # 拷贝动态库
       def copy_dynamic_libs
         dynamic_libs = vendored_dynamic_libraries
         if dynamic_libs && dynamic_libs.size > 0
           des_dir = dynamic_libs_des_dir
           FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
-          dynamic_libs.map do |lib|
-            `cp -r #{lib} #{des_dir}`
-          end
+          dynamic_libs.map { |lib| `cp -r #{lib} #{des_dir}` }
         end
       end
 
@@ -200,6 +210,13 @@ module CBin
         libs += file_accessors.flat_map(&:vendored_dynamic_libraries)
         @vendored_dynamic_libraries = libs.compact.map(&:to_s)
         @vendored_dynamic_libraries
+      end
+
+      # 获取xcframework
+      def vendored_xcframeworks
+        return [] if @file_accessors.nil?
+        xcframeworks = @file_accessors.flat_map(&:vendored_xcframeworks) || []
+        xcframeworks.compact.map(&:to_s)
       end
 
       # 获取静态库
