@@ -104,9 +104,10 @@ module Pod
         #制作二进制包
         def run_archive
           argvs = [
-              "--sources=#{sources_option(@code_dependencies, @sources)},https:\/\/cdn.cocoapods.org",
-              @additional_args
+              "--sources=#{sources_option(@code_dependencies, @sources)},https:\/\/cdn.cocoapods.org"
           ]
+
+          argvs += @additional_args unless @additional_args.nil?
 
           argvs << spec_file if spec_file
           argvs.delete(Array.new)

@@ -168,8 +168,8 @@ module Pod
                 podfile= File.join(Pathname.pwd, "Podfile")
                 if File.exist?(podfile)
                   argvs += ['--use-podfile']
-                else
-                  argvs += ['--use-modular-headers']
+                # else
+                #   argvs += ['--use-modular-headers']
                 end
                 
                 argvs << spec_file if spec_file
