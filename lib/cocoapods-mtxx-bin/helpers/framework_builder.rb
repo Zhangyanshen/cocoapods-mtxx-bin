@@ -36,10 +36,14 @@ module CBin
         copy_all_resources
         # 拷贝swiftmodule
         copy_swiftmodules
-        # 拷贝动态库
-        copy_dynamic_libs
-        # 拷贝xcframework
-        copy_xcframeworks
+        # # 拷贝vendored_libraries
+        # copy_vendored_libraries
+        # 拷贝vendored_frameworks
+        copy_vendored_frameworks
+        # # 拷贝动态库
+        # copy_dynamic_libs
+        # # 拷贝xcframework
+        # copy_xcframeworks
         # 拷贝最终产物
         copy_target_product
         # 返回Framework目录
@@ -75,6 +79,26 @@ module CBin
         end
       end
 
+      # 拷贝vendored_frameworks
+      def copy_vendored_frameworks
+        fwks = vendored_frameworks
+        unless fwks.empty?
+          des_dir = dynamic_libs_des_dir
+          FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
+          fwks.map { |fwk| `cp -r #{fwk} #{des_dir}` }
+        end
+      end
+
+      # 拷贝vendored_libraries
+      def copy_vendored_libraries
+        libs = vendored_libraries
+        unless libs.empty?
+          des_dir = vendored_libraries_dir
+          FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
+          libs.map { |lib| `cp -r #{lib} #{des_dir}` }
+        end
+      end
+
       # 拷贝swiftmodule
       def copy_swiftmodules
         swift_module = "#{build_device_dir}/#{framework_name}.framework/Modules/#{framework_name}.swiftmodule"
@@ -99,9 +123,7 @@ module CBin
         return if bundles.size == 0
         des_dir = resources_des_dir
         # FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
-        bundles.map do |bundle|
-          `cp -r #{bundle} #{des_dir}`
-        end
+        bundles.map { |bundle| `cp -r #{bundle} #{des_dir}` }
       end
 
       # 拷贝resources/resource
@@ -110,9 +132,7 @@ module CBin
         return if resources.size == 0
         des_dir = resources_des_dir
         # FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
-        resources.map do |res|
-          `cp -r #{res} #{des_dir}`
-        end
+        resources.map { |res| `cp -r #{res} #{des_dir}` }
       end
 
       # 获取podspec中的resource_bundles
@@ -145,12 +165,13 @@ module CBin
       def merge_device_sim
         libs = static_libs_in_sandbox + static_libs_in_sandbox(build_sim_dir)
         output = "#{build_device_dir}/#{framework_name}.framework/#{framework_name}"
-        `lipo -create -output #{output} #{libs.join(' ')}`
+        `lipo -create -output #{output} #{libs.join(' ')}` unless libs.empty?
       end
 
       # 合并真机静态库
       def merge_static_libs_for_device
         static_libs = static_libs_in_sandbox + vendored_static_libraries
+        return if static_libs.empty?
         libs = ios_architectures.map do |arch|
           library = "#{build_device_dir}/package-#{framework_name}-#{arch}.a"
           `libtool -arch_only #{arch} -static -o #{library} #{static_libs.join(' ')}`
@@ -163,6 +184,7 @@ module CBin
       # 合并模拟器静态库
       def merge_static_libs_for_sim
         static_libs = static_libs_in_sandbox(build_sim_dir) + vendored_static_libraries
+        return if static_libs.empty?
         libs = ios_architectures_sim.map do |arch|
           library = "#{build_sim_dir}/package-#{framework_name}-#{arch}.a"
           `libtool -arch_only #{arch} -static -o #{library} #{static_libs.join(' ')}`
@@ -182,6 +204,11 @@ module CBin
         "#{build_device_dir}/#{framework_name}.framework/fwks"
       end
 
+      # 存放vendored_libraries的目录
+      def vendored_libraries_dir
+        "#{build_device_dir}/#{framework_name}.framework/libs"
+      end
+
       # 真机路径
       def build_device_dir
         'build-device'
@@ -192,12 +219,27 @@ module CBin
         'build-simulator'
       end
 
+      # 获取vendored_libraries
+      def vendored_libraries
+        return [] if @file_accessors.nil?
+        libs = @file_accessors.flat_map(&:vendored_libraries) || []
+        libs.compact.map(&:to_s)
+      end
+
+      # 获取vendored_frameworks
+      def vendored_frameworks
+        return [] if @file_accessors.nil?
+        fwks = @file_accessors.flat_map(&:vendored_frameworks) || []
+        fwks.compact.map(&:to_s)
+      end
+
       # 获取静态库
       def vendored_static_libraries
         return [] if @file_accessors.nil?
         file_accessors = @file_accessors
-        libs = file_accessors.flat_map(&:vendored_static_frameworks).map { |f| f + f.basename('.*') } || []
-        libs += file_accessors.flat_map(&:vendored_static_libraries)
+        # libs = file_accessors.flat_map(&:vendored_static_frameworks).map { |f| f + f.basename('.*') } || []
+        # libs += file_accessors.flat_map(&:vendored_static_libraries)
+        libs = file_accessors.flat_map(&:vendored_static_libraries) || []
         @vendored_static_libraries = libs.compact.map(&:to_s)
         @vendored_static_libraries
       end
@@ -288,7 +330,7 @@ module CBin
           command = "xcodebuild #{defines} #{args} CONFIGURATION_BUILD_DIR=#{build_dir} clean build -configuration #{build_model} -target #{target_name} -project ./Pods.xcodeproj 2>&1"
         end
 
-        UI.message "command = #{command}"
+        UI.puts "command = #{command}"
         output = `#{command}`.lines.to_a
 
         if $CHILD_STATUS.exitstatus != 0

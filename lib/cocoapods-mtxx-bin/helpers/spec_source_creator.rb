@@ -145,6 +145,9 @@ module CBin
         end
         @spec.vendored_frameworks = fwks
 
+        libs_path = "#{CBin::Config::Builder.instance.gen_dir}/#{code_spec.root.name}/ios/#{code_spec.module_name}.framework/libs"
+        @spec.vendored_libraries = "#{code_spec.module_name}.framework/libs/*" if File.exist?(libs_path)
+
         # Resources
         # @spec.resources = "#{code_spec.module_name}.framework/resources/*"
         extnames = []
@@ -178,11 +181,11 @@ module CBin
         # 这里统一只对命名后缀 .a 文件做处理
         # spec_hash.delete('vendored_libraries')
         # libraries 只能假设为动态库不做处理了，如果有例外，需要开发者自行处理
-        vendored_libraries = spec_hash.delete('vendored_libraries')
-        vendored_libraries = Array(vendored_libraries).reject { |l| l.end_with?('.a') }
-        if vendored_libraries.any?
-          spec_hash['vendored_libraries'] = vendored_libraries
-        end
+        # vendored_libraries = spec_hash.delete('vendored_libraries')
+        # vendored_libraries = Array(vendored_libraries).reject { |l| l.end_with?('.a') }
+        # if vendored_libraries.any?
+        #   spec_hash['vendored_libraries'] = vendored_libraries
+        # end
 
         # Filter platforms
         platforms = spec_hash['platforms']
