@@ -175,6 +175,7 @@ module CBin
         spec_hash.delete('resource_bundles')
         spec_hash.delete('exclude_files')
         spec_hash.delete('preserve_paths')
+        spec_hash.delete('prepare_command')
         # 这里不确定 vendored_libraries 指定的时动态/静态库
         # 如果是静态库的话，需要移除，否则就不移除
         # 最好是静态库都独立成 Pod ，cocoapods-package 打静态库去 collect 目标文件时好做过滤
