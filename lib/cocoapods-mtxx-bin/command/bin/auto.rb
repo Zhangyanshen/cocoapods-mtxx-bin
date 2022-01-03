@@ -37,11 +37,12 @@ module Pod
           @push_source_podspec = argv.flag?('push-source-podspec')
           @code_dependencies = argv.flag?('code-dependencies')
           @allow_prerelease = argv.flag?('allow-prerelease')
-          @framework_output = argv.flag?('framework-output', false )
+          @framework_output = argv.flag?('framework-output', false)
           @clean = argv.flag?('clean', true)
           @zip = argv.flag?('zip', true)
-          @all_make = argv.flag?('all-make', false )
-          @verbose = argv.flag?('verbose',true)
+          @all_make = argv.flag?('all-make', false)
+          @verbose = argv.flag?('verbose', false)
+          @sources = argv.option('sources', 'https://cdn.cocoapods.org')
 
           @config = argv.option('configuration', 'Debug')
           @additional_args = argv.remainder!

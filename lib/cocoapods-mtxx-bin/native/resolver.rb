@@ -117,16 +117,16 @@ module Pod
 
             # developments 组件采用默认输入的 spec (development pods 的 source 为 nil)
             # 可以使 :podspec => "htts://IMYFoundation.podspec"可以走下去，by slj
-            # unless rspec.spec.respond_to?(:spec_source) && rspec.spec.spec_source
-            #   next rspec
-            # end
+            unless rspec.spec.respond_to?(:spec_source) && rspec.spec.spec_source
+              next rspec
+            end
 
             # 采用二进制依赖并且不为开发组件
             use_binary = use_binary_rspecs.include?(rspec)
             source = use_binary ? sources_manager.binary_source : sources_manager.code_source
 
             spec_version = rspec.spec.version
-            UI.message 'cocoapods-mtxx-bin 插件'
+            # UI.message 'cocoapods-mtxx-bin 插件'
             UI.message "- 开始处理 #{rspec.spec.name} #{spec_version} 组件."
 
             begin
@@ -148,24 +148,18 @@ module Pod
                              end
               # used_by_only = rspec.respond_to?(:used_by_tests_only) ? rspec.used_by_tests_only : rspec.used_by_non_library_targets_only
               # 组装新的 rspec ，替换原 rspec
-              # if use_binary
-                rspec = if Pod.match_version?('~> 1.4.0')
-                          ResolverSpecification.new(specification, used_by_only)
-                        else
-                          ResolverSpecification.new(specification, used_by_only, source)
-                        end
-                UI.message "组装新的 rspec ，替换原 rspec #{rspec.root.name} #{spec_version} \r\n specification =#{specification} \r\n #{rspec} "
-
-              # end
-
+              rspec = if Pod.match_version?('~> 1.4.0')
+                        ResolverSpecification.new(specification, used_by_only)
+                      else
+                        ResolverSpecification.new(specification, used_by_only, source)
+                      end
+              UI.message "组装新的 rspec ，替换原 rspec #{rspec.root.name} #{spec_version} \r\n specification =#{specification} \r\n #{rspec} "
             rescue Pod::StandardError => e
               # 没有从新的 source 找到对应版本组件，直接返回原 rspec
-
-              # missing_binary_specs << rspec.spec if use_binary
-              missing_binary_specs << rspec.spec
+              missing_binary_specs << rspec.spec if use_binary
+              # missing_binary_specs << rspec.spec
               rspec
             end
-
             rspec
           end.compact
         end
@@ -174,14 +168,15 @@ module Pod
           missing_binary_specs.uniq.each do |spec|
             UI.message "【#{spec.name} | #{spec.version}】组件无对应二进制版本 , 将采用源码依赖."
           end
+          # 下面的代码为了实现 auto 命令的 --all-make
           Pod::Command::Bin::Archive.missing_binary_specs(missing_binary_specs)
-
           #缓存没有二进制组件到spec文件，local_psec_dir 目录
           sources_sepc = []
           des_dir = CBin::Config::Builder.instance.local_psec_dir
           FileUtils.rm_f(des_dir) if File.exist?des_dir
           Dir.mkdir des_dir unless File.exist?des_dir
           missing_binary_specs.uniq.each do |spec|
+            # 排除subspec
             next if spec.name.include?('/')
 
             spec_git_res = false

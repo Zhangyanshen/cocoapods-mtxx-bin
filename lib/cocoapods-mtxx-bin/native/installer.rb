@@ -25,7 +25,7 @@ module Pod
         end
       else
         old_install_pod_sources
-        end
+      end
     end
 
     # rewrite install_pod_sources
@@ -54,14 +54,13 @@ module Pod
 
     def install_pod_sources_for_version_above_1_5_0
       @installed_specs = []
-      pods_to_install = sandbox_state.added | sandbox_state.changed | sandbox_state.unchanged
+      pods_to_install = sandbox_state.added | sandbox_state.changed
       title_options = { verbose_prefix: '-> '.green }
       # 多进程下载，多线程时 log 会显著交叉，多进程好点，但是多进程需要利用文件锁对 cache 进行保护
       # in_processes: 10
       Parallel.each(root_specs.sort_by(&:name), in_threads: 4) do |spec|
         if pods_to_install.include?(spec.name)
-          if sandbox.manifest
-          # if sandbox_state.changed.include?(spec.name) && sandbox.manifest
+          if sandbox_state.changed.include?(spec.name) && sandbox.manifest
             current_version = spec.version
             previous_version = sandbox.manifest.version(spec.name)
             has_changed_version = current_version != previous_version
@@ -74,7 +73,7 @@ module Pod
             title = "Installing #{spec.name} #{spec.version}"
             if has_changed_version && has_changed_repo
               title += " (was #{previous_version} and source changed to `#{current_repo}` from `#{previous_spec_repo}`)"
-              end
+            end
             if has_changed_version && !has_changed_repo
               title += " (was #{previous_version})"
             end
