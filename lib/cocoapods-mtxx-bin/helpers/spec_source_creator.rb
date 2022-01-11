@@ -149,15 +149,15 @@ module CBin
         @spec.vendored_libraries = "#{code_spec.module_name}.framework/libs/*" if File.exist?(libs_path)
 
         # Resources
-        # @spec.resources = "#{code_spec.module_name}.framework/resources/*"
-        extnames = []
-        extnames << '*.bundle' if code_spec_consumer.resource_bundles.any?
-        if code_spec_consumer.resources.any?
-          extnames += code_spec_consumer.resources.map { |r| File.basename(r) }
-        end
-        if extnames.any?
-          @spec.resources = framework_contents('').flat_map { |r| extnames.map { |e| "#{r}/#{e}" } }
-        end
+        @spec.resources = "#{code_spec.module_name}.framework/resources/*"
+        # extnames = []
+        # extnames << '*.bundle' if code_spec_consumer.resource_bundles.any?
+        # if code_spec_consumer.resources.any?
+        #   extnames += code_spec_consumer.resources.map { |r| File.basename(r) }
+        # end
+        # if extnames.any?
+        #   @spec.resources = framework_contents('').flat_map { |r| extnames.map { |e| "#{r}/#{e}" } }
+        # end
 
         # Source Location
         @spec.source = binary_source

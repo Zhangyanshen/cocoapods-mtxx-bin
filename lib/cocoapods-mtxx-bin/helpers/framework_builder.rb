@@ -122,7 +122,7 @@ module CBin
         bundles = resource_bundles
         return if bundles.size == 0
         des_dir = resources_des_dir
-        # FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
+        FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
         bundles.map { |bundle| `cp -r #{bundle} #{des_dir}` }
       end
 
@@ -131,7 +131,7 @@ module CBin
         resources = other_resources
         return if resources.size == 0
         des_dir = resources_des_dir
-        # FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
+        FileUtils.mkdir(des_dir) unless File.exist?(des_dir)
         resources.map { |res| `cp -r #{res} #{des_dir}` }
       end
 
@@ -196,7 +196,7 @@ module CBin
 
       # 存放资源的目录
       def resources_des_dir
-        "#{build_device_dir}/#{framework_name}.framework"
+        "#{build_device_dir}/#{framework_name}.framework/resources"
       end
 
       # 存放动态库的目录
@@ -292,7 +292,7 @@ module CBin
 
       # 真机编译（只支持 arm64）
       def compile
-        defines = "GCC_PREPROCESSOR_DEFINITIONS='$(inherited)'"
+        defines = "GCC_PREPROCESSOR_DEFINITIONS='$(inherited)' BUILD_LIBRARY_FOR_DISTRIBUTION=YES"
         defines += ' '
         defines += @spec.consumer(@platform).compiler_flags.join(' ')
 
