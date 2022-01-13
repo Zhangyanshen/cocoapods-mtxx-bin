@@ -52,6 +52,9 @@ module CBin
       def done_message
         print "\n设置完成.\n".green
       end
+      def done_message_update
+        print "\n更新完成.\n".green
+      end
     end
   end
 end

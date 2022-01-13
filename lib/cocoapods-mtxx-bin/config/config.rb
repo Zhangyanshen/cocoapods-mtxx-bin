@@ -12,7 +12,7 @@ module CBin
     def template_hash
       {
           'configuration_env' => { description: '编译环境', default: 'dev', selection: %w[dev debug_iphoneos release_iphoneos] },
-          'code_repo_url' => { description: '源码私有源 Git 地址', default: 'git@techgit.meitu.com:iMeituPic/mtsourcespecs.git' },
+          'code_repo_url_list' => { description: '源码私有源 Git 地址 ,支持多私有源,多个私有源用分号区分', default: 'git@techgit.meitu.com:iosmodules/specs.git;https://github.com/CocoaPods/Specs.git' },
           'binary_repo_url' => { description: '二进制私有源 Git 地址', default: 'git@techgit.meitu.com:iMeituPic/mtbinaryspecs.git' },
           'binary_download_url' => { description: '二进制下载地址，内部会依次传入组件名称与版本，替换字符串中的 %s ', default: 'http://172.18.34.32:8080/frameworks/%s/%s/zip' },
           # 'binary_type' => { description: '二进制打包类型', default: 'framework', selection: %w[framework library] },
@@ -31,9 +31,14 @@ module CBin
       elsif configuration_env == "dev"
         puts "\n======  #{configuration_env} 环境 ========"
       else
-        raise "\n=====  #{configuration_env} 参数有误，请检查%w[dev debug_iphoneos release_iphoneos]===="
+        raise "\n=====  #{configuration_env} %w[dev debug_iphoneos release_iphoneos]===="
       end
 
+      File.expand_path("#{Pod::Config.instance.home_dir}/#{file}")
+    end
+
+    def config_file_with_configuration_env_list(configuration_env)
+      file = config_dev_file
       File.expand_path("#{Pod::Config.instance.home_dir}/#{file}")
     end
 
@@ -74,6 +79,24 @@ module CBin
 
     def sync_config(config)
       File.open(config_file_with_configuration_env(config['configuration_env']), 'w+') do |f|
+        f.write(config.to_yaml)
+      end
+    end
+
+    def config_old
+      configTo = {}
+      text_list =  IO.readlines(config_file_with_configuration_env_list("dev"))
+      text_list.delete("---\n")
+      text_list.each { |text|
+        textTo = text.strip
+        list = textTo.split(": ")
+        configTo[list.first] =  list.last
+      }
+      configTo
+    end
+
+    def sync_config_code_repo_url_list(config)
+      File.open(config_file_with_configuration_env_list(config['code_repo_url_list']), 'w+') do |f|
         f.write(config.to_yaml)
       end
     end
