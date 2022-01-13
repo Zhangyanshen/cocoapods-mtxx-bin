@@ -42,6 +42,8 @@ module Pod
         ]
 
         def initialize(argv)
+          @podspec = argv.shift_argument
+
           @code_dependencies = argv.flag?('code-dependencies')
           @framework_output = argv.flag?('framework-output', false )
           @clean = argv.flag?('no-clean', false)

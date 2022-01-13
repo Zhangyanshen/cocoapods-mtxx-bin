@@ -292,7 +292,7 @@ module CBin
 
       # 真机编译（只支持 arm64）
       def compile
-        defines = "GCC_PREPROCESSOR_DEFINITIONS='$(inherited)' BUILD_LIBRARY_FOR_DISTRIBUTION=YES"
+        defines = "GCC_PREPROCESSOR_DEFINITIONS='$(inherited)'"
         defines += ' '
         defines += @spec.consumer(@platform).compiler_flags.join(' ')
 

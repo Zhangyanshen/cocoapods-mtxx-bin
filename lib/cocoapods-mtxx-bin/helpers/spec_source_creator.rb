@@ -149,7 +149,10 @@ module CBin
         @spec.vendored_libraries = "#{code_spec.module_name}.framework/libs/*" if File.exist?(libs_path)
 
         # Resources
-        @spec.resources = "#{code_spec.module_name}.framework/resources/*"
+        resources_path = "#{CBin::Config::Builder.instance.gen_dir}/#{code_spec.root.name}/ios/#{code_spec.module_name}.framework/resources"
+        if File.exist?(resources_path)
+          @spec.resources = "#{code_spec.module_name}.framework/resources/*"
+        end
         # extnames = []
         # extnames << '*.bundle' if code_spec_consumer.resource_bundles.any?
         # if code_spec_consumer.resources.any?

@@ -97,7 +97,7 @@ module Pod
 
           # 上传源码podspec
           UI.section("Pushing source podspec for #{@specification.name}") do
-            Pod::Command::Bin::Repo::Push.new(CLAide::ARGV.new(['--loose-options'])).run
+            Pod::Command::Bin::Repo::Push.new(CLAide::ARGV.new([@podspec, '--loose-options'])).run
           end if @push_source_podspec
 
         end
@@ -110,7 +110,7 @@ module Pod
 
           argvs += @additional_args unless @additional_args.nil?
 
-          argvs << spec_file if spec_file
+          argvs << @podspec if @podspec
           argvs.delete(Array.new)
 
           unless @clean
