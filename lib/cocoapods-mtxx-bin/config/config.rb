@@ -1,7 +1,9 @@
 require 'yaml'
 require 'cocoapods-mtxx-bin/native/podfile'
 require 'cocoapods-mtxx-bin/native/podfile_env'
+require 'cocoapods-mtxx-bin/native/podfile_env'
 require 'cocoapods/generate'
+
 
 module CBin
   class Config
@@ -117,6 +119,7 @@ module CBin
 
     def config
       @config ||= begin
+
                     puts "====== cocoapods-mtxx-bin #{CBin::VERSION} 版本 ======== \n"
                     @config = OpenStruct.new load_config
         validate!
