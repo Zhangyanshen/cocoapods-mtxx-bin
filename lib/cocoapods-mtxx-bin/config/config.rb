@@ -1,7 +1,6 @@
 require 'yaml'
 require 'cocoapods-mtxx-bin/native/podfile'
 require 'cocoapods-mtxx-bin/native/podfile_env'
-require 'cocoapods-mtxx-bin/native/podfile_env'
 require 'cocoapods/generate'
 
 
