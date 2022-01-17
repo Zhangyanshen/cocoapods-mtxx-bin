@@ -24,16 +24,17 @@ module Pod
           end
 
           def run
-            show_output = !config.silent?
-            if @name || @all
-              config.sources_manager.update(@name, show_output)
+            if @all
+              config.sources_manager.update()
             else
-              Parallel.each(valid_sources, in_threads: 4) do |source|
-                UI.puts "更新私有源仓库 #{source.to_s}".yellow
-                source.update(show_output)
-              end
+              valid_sources.map { |source|
+                UI.message "更新私有源仓库 #{source.to_s}".yellow
+                source.update(false )
+              }
             end
           end
+
+
         end
       end
     end

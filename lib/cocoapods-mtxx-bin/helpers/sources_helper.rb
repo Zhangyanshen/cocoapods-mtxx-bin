@@ -12,16 +12,15 @@ module CBin
       sources_manager.binary_source
     end
 
-    def code_source
-      sources_manager.code_source
+    def code_source_list
+      sources_manager.code_source_list
     end
-
     # 优先采用对应依赖的 source
     # cocoapods 内部会先匹配前面符合的 specification
     # 只允许二进制的 specification subspec 比源码的 specification subspec 多
     #
     def valid_sources(code_dependencies = false)
-      sources = [code_source]
+      sources = code_source_list
       unless code_dependencies
         sources << binary_source
         sources.reverse!

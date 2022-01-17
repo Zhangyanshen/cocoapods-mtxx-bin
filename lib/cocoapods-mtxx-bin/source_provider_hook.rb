@@ -6,7 +6,9 @@ Pod::HooksManager.register('cocoapods-mtxx-bin', :pre_install) do |_context, _|
   require 'cocoapods-mtxx-bin/native'
 
   # pod bin repo update 更新二进制私有源
-  Pod::Command::Bin::Repo::Update.new(CLAide::ARGV.new([])).run
+
+
+  Pod::Command::Bin::Repo::Update.new(CLAide::ARGV.new($ARGV)).run
 
   # 有插件/本地库 且是dev环境下，默认进入源码白名单  过滤 archive命令
   if _context.podfile.plugins.keys.include?('cocoapods-mtxx-bin') && _context.podfile.configuration_env == 'dev'
@@ -41,14 +43,13 @@ end
 Pod::HooksManager.register('cocoapods-mtxx-bin', :source_provider) do |context, _|
   sources_manager = Pod::Config.instance.sources_manager
   podfile = Pod::Config.instance.podfile
-
   if podfile
     # 添加源码私有源 && 二进制私有源
-    added_sources = [sources_manager.code_source]
+    added_sources = sources_manager.code_source_list
     if podfile.use_binaries? || podfile.use_binaries_selector
       added_sources << sources_manager.binary_source
       added_sources.reverse!
     end
-    added_sources.each { |source| context.add_source(source) }
+    added_sources.each { |source| context.add_source(source)}
   end
 end
