@@ -7,7 +7,7 @@ module Pod
       class Auto < Bin
         self.summary = '一键打包二进制并上传'
         self.description = <<-DESC
-          生成二进制并上传至文件服务器，生成二进制podspec并上传至二进制私有源
+          生成二进制文件并上传至文件服务器，生成二进制 podspec 并上传至二进制私有源
         DESC
 
         self.arguments = [
@@ -15,7 +15,7 @@ module Pod
         ]
         def self.options
           [
-              ['--push-source-podspec', '是否上传源码podspec'],
+              ['--push-source-podspec', '上传源码 podspec '],
               ['--code-dependencies', '使用源码依赖'],
               ['--allow-prerelease', '允许使用 prerelease 的版本'],
               ['--no-clean', '保留构建中间产物'],
@@ -32,7 +32,8 @@ module Pod
           @env = argv.option('env') || 'dev'
           CBin.config.set_configuration_env(@env)
 
-          @podspec = argv.shift_argument || find_podspec
+          # @podspec = argv.shift_argument || find_podspec
+          @podspec = argv.shift_argument
 
           @push_source_podspec = argv.flag?('push-source-podspec')
           @code_dependencies = argv.flag?('code-dependencies')
@@ -43,20 +44,22 @@ module Pod
           @all_make = argv.flag?('all-make', false)
           @verbose = argv.flag?('verbose', false)
           @sources = argv.option('sources', 'https://cdn.cocoapods.org')
-
           @config = argv.option('configuration', 'Debug')
-          @additional_args = argv.remainder!
 
           super
+
+          # ！！！ 这一行加载在 super 的后面，否则会出现问题，切记 ！！！
+          @additional_args = argv.remainder!
         end
 
         def validate!
-          # help!
-          help! "未找到 podspec文件" unless @podspec
           super
+          raise Informative, '当前目录下没有 podspec 文件' if @podspec.nil? && code_spec_files.size == 0
+          raise Informative, '当前目录有多个 podspec 文件，请指定具体的 podspec 文件' if @podspec.nil? && code_spec_files.size > 1
         end
 
         def run
+          @podspec = find_podspec unless @podspec
           @specification = Specification.from_file(@podspec)
 
           # 归档.a或.framework
