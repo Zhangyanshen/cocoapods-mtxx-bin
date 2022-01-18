@@ -123,7 +123,15 @@ module Pod
 
             # 采用二进制依赖并且不为开发组件
             use_binary = use_binary_rspecs.include?(rspec)
-            source = use_binary ? sources_manager.binary_source : sources_manager.code_source_list
+            if use_binary
+              source = sources_manager.binary_source
+            else
+              source = sources_manager.code_source_list.select do |s|
+                s.search(rspec.root.name)
+              end.first
+            end
+
+            raise Informative, 'source is nil' unless source
 
             spec_version = rspec.spec.version
             # UI.message 'cocoapods-mtxx-bin 插件'
@@ -131,22 +139,8 @@ module Pod
 
             begin
               # 从新 source 中获取 spec,在bin archive中会异常，因为找不到
-              specification = nil
-              ss = nil
-              if use_binary
-                specification = source.specification(rspec.root.name, spec_version)
-                ss = source
-              else
-                source.map do |s|
-                  specification = s.specification(rspec.root.name, spec_version)
-                  if specification
-                    ss = s
-                    break
-                  end
-                end
-              end
+              specification = source.specification(rspec.root.name, spec_version)
 
-              raise Informative, 'source is nil' unless ss
               raise Informative, 'specification is nil' unless specification
 
               UI.message "#{rspec.root.name} #{spec_version} \r\n specification =#{specification} "
@@ -168,7 +162,7 @@ module Pod
               rspec = if Pod.match_version?('~> 1.4.0')
                         ResolverSpecification.new(specification, used_by_only)
                       else
-                        ResolverSpecification.new(specification, used_by_only, ss)
+                        ResolverSpecification.new(specification, used_by_only, source)
                       end
               UI.message "组装新的 rspec ，替换原 rspec #{rspec.root.name} #{spec_version} \r\n specification =#{specification} \r\n #{rspec} "
             rescue Pod::StandardError => e
