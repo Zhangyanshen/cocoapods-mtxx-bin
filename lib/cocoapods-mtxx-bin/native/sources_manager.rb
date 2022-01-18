@@ -8,7 +8,7 @@ module Pod
     class Manager
       # 源码 source list
       def code_source_list
-          CBin.config.code_repo_url_list.split(";").map { |source|  source_with_name_or_url(source)}
+        CBin.config.code_repo_url_list.split(";").map { |source| source_with_name_or_url(source)}
       end
       # 二进制 source
       def binary_source

@@ -13,7 +13,7 @@ module CBin
     def template_hash
       {
           'configuration_env' => { description: '编译环境', default: 'dev', selection: %w[dev debug_iphoneos release_iphoneos] },
-          'code_repo_url_list' => { description: '源码私有源 Git 地址 ,支持多私有源,多个私有源用分号区分', default: 'git@techgit.meitu.com:iosmodules/specs.git;https://github.com/CocoaPods/Specs.git' },
+          'code_repo_url_list' => { description: '源码私有源 Git 地址 ,支持多私有源,多个私有源用分号区分', default: 'git@techgit.meitu.com:iMeituPic/mtsourcespecs.git' },
           'binary_repo_url' => { description: '二进制私有源 Git 地址', default: 'git@techgit.meitu.com:iMeituPic/mtbinaryspecs.git' },
           'binary_download_url' => { description: '二进制下载地址，内部会依次传入组件名称与版本，替换字符串中的 %s ', default: 'http://172.18.34.32:8080/frameworks/%s/%s/zip' },
           # 'binary_type' => { description: '二进制打包类型', default: 'framework', selection: %w[framework library] },
