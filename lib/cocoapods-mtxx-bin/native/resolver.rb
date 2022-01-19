@@ -126,22 +126,24 @@ module Pod
             if use_binary
               source = sources_manager.binary_source
             else
-              source = sources_manager.code_source_list.select do |s|
+              # 获取podfile中的source
+              podfile_sources = podfile.sources.map { |source| sources_manager.source_with_name_or_url(source) }
+              source = (podfile_sources + sources_manager.code_source_list).select do |s|
                 s.search(rspec.root.name)
               end.first
             end
 
-            raise Informative, 'source is nil' unless source
-
             spec_version = rspec.spec.version
-            # UI.message 'cocoapods-mtxx-bin 插件'
-            UI.message "- 开始处理 #{rspec.spec.name} #{spec_version} 组件."
+
+            raise Informative, "Source of #{rspec.root.name}(#{spec_version}) is nil" unless source
+
+            UI.message "- 开始处理 #{rspec.spec.name}(#{spec_version}) 组件."
 
             begin
               # 从新 source 中获取 spec,在bin archive中会异常，因为找不到
               specification = source.specification(rspec.root.name, spec_version)
 
-              raise Informative, 'specification is nil' unless specification
+              raise Informative, "Specification of #{rspec.root.name}(#{spec_version}) is nil" unless specification
 
               UI.message "#{rspec.root.name} #{spec_version} \r\n specification =#{specification} "
               # 组件是 subspec

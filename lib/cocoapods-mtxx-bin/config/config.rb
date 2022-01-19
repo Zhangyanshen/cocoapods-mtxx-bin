@@ -25,14 +25,14 @@ module CBin
       file = config_dev_file
       if configuration_env == "release_iphoneos"
         file = config_release_iphoneos_file
-        puts "\n======  #{configuration_env} 环境 ========"
+        puts "====== #{configuration_env} 环境 ========"
       elsif configuration_env == "debug_iphoneos"
         file = config_debug_iphoneos_file
-        puts "\n======  #{configuration_env} 环境 ========"
+        puts "====== #{configuration_env} 环境 ========"
       elsif configuration_env == "dev"
-        puts "\n======  #{configuration_env} 环境 ========"
+        puts "====== #{configuration_env} 环境 ========"
       else
-        raise "\n=====  #{configuration_env} %w[dev debug_iphoneos release_iphoneos]===="
+        raise "===== #{configuration_env} %w[dev debug_iphoneos release_iphoneos]===="
       end
 
       File.expand_path("#{Pod::Config.instance.home_dir}/#{file}")
