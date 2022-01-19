@@ -9,7 +9,7 @@ require 'cocoapods-mtxx-bin/command/bin/install'
 require 'cocoapods-mtxx-bin/command/bin/repo'
 require 'cocoapods-mtxx-bin/command/bin/spec'
 require 'cocoapods-mtxx-bin/helpers'
-require 'cocoapods-mtxx-bin/native'
+# require 'cocoapods-mtxx-bin/native'
 
 module Pod
   class Command
@@ -44,16 +44,17 @@ module Pod
         利用源码私有源与二进制私有源实现对组件依赖类型的切换
       DESC
 
-      # def initialize(argv)
-      #   require 'cocoapods-mtxx-bin/native'
-      #
-      #   # @help = argv.flag?('help')
-      #   super
-      #   # @env = argv.option('env') || 'dev'
-      #   # CBin.config.set_configuration_env(@env)
-      #   # UI.info "====== cocoapods-mtxx-bin #{CBin::VERSION} 版本 ========"
-      #   # UI.info "====== #{@env} 环境 ========"
-      # end
+      def initialize(argv)
+        # ！！！ 下面这个require必须放在这里，不能放到文件顶部，切记 ！！！
+        require 'cocoapods-mtxx-bin/native'
+
+        # @help = argv.flag?('help')
+        super
+        # @env = argv.option('env') || 'dev'
+        # CBin.config.set_configuration_env(@env)
+        # UI.info "====== cocoapods-mtxx-bin #{CBin::VERSION} 版本 ========"
+        # UI.info "====== #{@env} 环境 ========"
+      end
 
       # def validate!
       #   super

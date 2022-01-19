@@ -6,8 +6,6 @@ Pod::HooksManager.register('cocoapods-mtxx-bin', :pre_install) do |_context, _|
   require 'cocoapods-mtxx-bin/native'
 
   # pod bin repo update 更新二进制私有源
-
-
   Pod::Command::Bin::Repo::Update.new(CLAide::ARGV.new($ARGV)).run
 
   # 有插件/本地库 且是dev环境下，默认进入源码白名单  过滤 archive命令
