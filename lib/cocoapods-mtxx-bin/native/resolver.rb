@@ -135,7 +135,7 @@ module Pod
 
             spec_version = rspec.spec.version
 
-            raise Informative, "Source of #{rspec.root.name}(#{spec_version}) is nil" unless source
+            raise Informative, "#{rspec.root.name}(#{spec_version})的podspec未找到，请执行 pod repo update 或添加相应的source源" unless source
 
             UI.message "- 开始处理 #{rspec.spec.name}(#{spec_version}) 组件."
 
