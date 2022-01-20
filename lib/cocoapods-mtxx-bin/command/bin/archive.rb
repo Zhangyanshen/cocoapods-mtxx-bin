@@ -67,6 +67,8 @@ module Pod
           FileUtils.rm_rf(zip_dir) if File.exist?(zip_dir)
           # 加载podspec
           @spec = Specification.from_file(spec_file)
+          # 如果有 default_subspecs 报错提示
+          raise Informative, "#{@spec.root.name} (#{@spec.root.version}) 有default_subspecs：#{@spec.default_subspecs}，请注释掉重新执行命令！" unless @spec.default_subspecs.empty?
           # 生成xcode工程
           generate_project
           # 构建当前库
