@@ -87,19 +87,18 @@ module Pod
             auto_success = ""
             success_specs.uniq.each do |spec|
               auto_success += "#{spec.name} | #{spec.version}\n"
-              UI.message "===【 #{spec.name} | #{spec.version} 】二进制组件制作完成 ！！！ ".green
+              UI.message "【 #{spec.name} | #{spec.version} 】二进制组件制作完成".green
             end
-            puts "==============  auto_success"
-            puts auto_success
+            UI.message auto_success
             ENV['auto_success'] = auto_success
           end
           #pod repo update
-          UI.section("\nUpdating Spec Repositories\n".yellow) do
+          UI.title("Updating Spec Repositories\n".yellow) do
             Pod::Command::Bin::Repo::Update.new(CLAide::ARGV.new([])).run
           end
 
           # 上传源码podspec
-          UI.section("Pushing source podspec for #{@specification.name}") do
+          UI.title("Pushing source podspec for #{@specification.name}") do
             Pod::Command::Bin::Repo::Push.new(CLAide::ARGV.new([@podspec, '--loose-options'])).run
           end if @push_source_podspec
 

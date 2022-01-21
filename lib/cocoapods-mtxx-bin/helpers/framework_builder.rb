@@ -292,9 +292,12 @@ module CBin
 
       # 真机编译（只支持 arm64）
       def compile
-        defines = "GCC_PREPROCESSOR_DEFINITIONS='$(inherited)'"
-        defines += ' '
-        defines += @spec.consumer(@platform).compiler_flags.join(' ')
+        defines = "GCC_PREPROCESSOR_DEFINITIONS='$(inherited)' GCC_WARN_INHIBIT_ALL_WARNINGS=YES -quiet"
+        # defines = "GCC_PREPROCESSOR_DEFINITIONS='$(inherited)' -quiet"
+        unless @spec.consumer(@platform).compiler_flags.empty?
+          defines += ' '
+          defines += @spec.consumer(@platform).compiler_flags.join(' ')
+        end
 
         options = "ARCHS=\'#{ios_architectures.join(' ')}\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
         xcodebuild(defines, options, build_device_dir, @build_model)
@@ -325,20 +328,30 @@ module CBin
       # 调用 xcodebuild 编译
       def xcodebuild(defines = '', args = '', build_dir = 'build', build_model = 'Release')
         unless File.exist?("Pods.xcodeproj") #cocoapods-generate v2.0.0
-          command = "xcodebuild #{defines} #{args} CONFIGURATION_BUILD_DIR=#{File.join(File.expand_path("..", build_dir), File.basename(build_dir))} clean build -configuration #{build_model} -target #{target_name} -project ./Pods/Pods.xcodeproj 2>&1"
+          command = "xcodebuild #{defines} #{args} CONFIGURATION_BUILD_DIR=#{File.join(File.expand_path("..", build_dir), File.basename(build_dir))} clean build -configuration #{build_model} -target #{target_name} -project ./Pods/Pods.xcodeproj"
         else
-          command = "xcodebuild #{defines} #{args} CONFIGURATION_BUILD_DIR=#{build_dir} clean build -configuration #{build_model} -target #{target_name} -project ./Pods.xcodeproj 2>&1"
+          command = "xcodebuild #{defines} #{args} CONFIGURATION_BUILD_DIR=#{build_dir} clean build -configuration #{build_model} -target #{target_name} -project ./Pods.xcodeproj"
         end
 
-        UI.puts "command = #{command}"
+        UI.info "#{command}"
         output = `#{command}`.lines.to_a
 
         if $CHILD_STATUS.exitstatus != 0
-          raise <<~EOF
-            Build command failed: #{command}
-            Output:
-            #{output.map { |line| "    #{line}" }.join}
+          log_file = File.join(Dir.pwd, "build_error.log")
+          error_msg = <<~EOF
+            😈 可恶，编译失败了~ 😈
+            请查看下面的报错信息或者打开 #{log_file} 查看
+            编译命令:
+                #{command}
+            报错信息:
+            #{output.map { |line| "   #{line}" }.join}
           EOF
+          FileUtils.rm_f(log_file) if File.exist?(log_file)
+          file = File.new(log_file, "w+")
+          file.puts(error_msg)
+          file.close
+
+          raise Informative, error_msg
 
           Process.exit
         end

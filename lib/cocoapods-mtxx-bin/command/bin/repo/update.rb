@@ -28,7 +28,7 @@ module Pod
               config.sources_manager.update()
             else
               valid_sources.map { |source|
-                UI.puts "更新私有源仓库 #{source.to_s}".yellow
+                UI.puts "更新私有源仓库 #{source.to_s}"
                 source.update(false)
               }
             end

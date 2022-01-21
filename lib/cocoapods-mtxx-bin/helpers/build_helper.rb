@@ -50,7 +50,7 @@ module CBin
 
       # 构建静态framework
       def build_static_framework
-        UI.section("Building static framework #{@spec}") do
+        UI.title("Building static framework #{@spec}") do
           source_dir = Dir.pwd
           # file_accessor = Sandbox::FileAccessor.new(Pathname.new('.').expand_path, @spec.consumer(@platform))
           Dir.chdir(workspace_directory) do
@@ -81,13 +81,15 @@ module CBin
         Dir.chdir(File.join(workspace_directory,@framework_path.root_path)) do
           output_name = File.join(zip_dir, framework_name_zip)
           unless File.exist?(framework_name)
-            UI.puts "没有需要压缩的 framework 文件：#{framework_name}"
+            UI.info "没有需要压缩的 framework 文件：#{framework_name}"
             return
           end
 
-          UI.section "Compressing #{framework_name} into #{output_name}" do
+          UI.title "Compressing #{framework_name} into #{output_name}" do
             Dir.mkdir(zip_dir) unless File.exist?(zip_dir)
-            `zip --symlinks -r #{output_name} #{framework_name}`
+            command = "zip --symlinks -r #{output_name} #{framework_name}"
+            UI.info "#{command}"
+            `#{command}`
           end
         end
       end

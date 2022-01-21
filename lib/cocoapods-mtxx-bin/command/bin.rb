@@ -52,8 +52,8 @@ module Pod
         super
         # @env = argv.option('env') || 'dev'
         # CBin.config.set_configuration_env(@env)
-        # UI.info "====== cocoapods-mtxx-bin #{CBin::VERSION} 版本 ========"
-        # UI.info "====== #{@env} 环境 ========"
+        # msg = "cocoapods-mtxx-bin #{CBin::VERSION} 版本 #{@env} 环境"
+        # UI.info "\033[44;30m#{msg}\033[0m\n"
       end
 
       # def validate!

@@ -59,11 +59,16 @@ module CBin
           res = File.exist?(zip_file)
         end
         if res
-          print <<EOF
-          上传二进制文件
-          curl #{CBin.config.binary_upload_url} -F "name=#{@spec.name}" -F "version=#{@spec.version}" -F "annotate=#{@spec.name}_#{@spec.version}_log" -F "file=@#{zip_file}"
-EOF
-          `curl #{CBin.config.binary_upload_url} -F "name=#{@spec.name}" -F "version=#{@spec.version}" -F "annotate=#{@spec.name}_#{@spec.version}_log" -F "file=@#{zip_file}"` if res
+          Pod::UI.title "Uploading binary zip file #{@spec.name} (#{@spec.version})" do
+            command = "curl #{CBin.config.binary_upload_url} -F \"name=#{@spec.name}\" -F \"version=#{@spec.version}\" -F \"annotate=#{@spec.name}_#{@spec.version}_log\" -F \"file=@#{zip_file}\""
+            Pod::UI.info "#{command}"
+            `#{command}`
+          end
+#           print <<EOF
+#           上传二进制文件
+#           curl #{CBin.config.binary_upload_url} -F "name=#{@spec.name}" -F "version=#{@spec.version}" -F "annotate=#{@spec.name}_#{@spec.version}_log" -F "file=@#{zip_file}"
+# EOF
+#           `curl #{CBin.config.binary_upload_url} -F "name=#{@spec.name}" -F "version=#{@spec.version}" -F "annotate=#{@spec.name}_#{@spec.version}_log" -F "file=@#{zip_file}"` if res
         end
 
         res

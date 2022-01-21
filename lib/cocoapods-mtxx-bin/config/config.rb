@@ -25,12 +25,12 @@ module CBin
       file = config_dev_file
       if configuration_env == "release_iphoneos"
         file = config_release_iphoneos_file
-        puts "====== #{configuration_env} 环境 ========"
+        # puts "====== #{configuration_env} 环境 ========"
       elsif configuration_env == "debug_iphoneos"
         file = config_debug_iphoneos_file
-        puts "====== #{configuration_env} 环境 ========"
+        # puts "====== #{configuration_env} 环境 ========"
       elsif configuration_env == "dev"
-        puts "====== #{configuration_env} 环境 ========"
+        # puts "====== #{configuration_env} 环境 ========"
       else
         raise "===== #{configuration_env} %w[dev debug_iphoneos release_iphoneos]===="
       end
@@ -118,8 +118,8 @@ module CBin
 
     def config
       @config ||= begin
-
-                    puts "====== cocoapods-mtxx-bin #{CBin::VERSION} 版本 ======== \n"
+                    msg = "cocoapods-mtxx-bin #{CBin::VERSION} 版本"
+                    puts "\033[44m#{msg}\033[0m\n"
                     @config = OpenStruct.new load_config
         validate!
         @config

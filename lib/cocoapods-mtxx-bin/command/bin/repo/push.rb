@@ -106,7 +106,7 @@ module Pod
           end
 
           def repo
-            @binary ? binary_source.name : code_source.name
+            @binary ? binary_source.name : code_source_list.first.name
           end
         end
       end
