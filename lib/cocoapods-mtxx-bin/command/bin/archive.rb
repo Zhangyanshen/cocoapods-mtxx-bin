@@ -77,6 +77,7 @@ module Pod
           sources_sepc = Array.new
           sources_sepc << @spec
           # 如果有 --all-make 选项，则打包依赖组件
+
           sources_sepc.concat(build_dependencies) if @all_make
 
           # 返回所有打包二进制组件的podspec

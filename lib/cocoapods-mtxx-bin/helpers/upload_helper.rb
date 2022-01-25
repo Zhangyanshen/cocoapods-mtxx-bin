@@ -9,7 +9,7 @@ require 'cocoapods-mtxx-bin/helpers/framework_builder'
 require 'cocoapods-mtxx-bin/helpers/library_builder'
 require 'cocoapods-mtxx-bin/helpers/sources_helper'
 require 'cocoapods-mtxx-bin/command/bin/repo/push'
-
+require 'json'
 module CBin
   class Upload
     class Helper
@@ -52,6 +52,7 @@ module CBin
       # 推送二进制
       # curl http://ci.xxx:9192/frameworks -F "name=IMYFoundation" -F "version=7.7.4.2" -F "annotate=IMYFoundation_7.7.4.2_log" -F "file=@bin_zip/bin_IMYFoundation_7.7.4.2.zip"
       def curl_zip
+        # output_name = File.join(CBin::Config::Builder.instance.zip_dir, CBin::Config::Builder.instance.framework_name_zip)
         zip_file = "#{CBin::Config::Builder.instance.library_file(@spec)}.zip"
         res = File.exist?(zip_file)
         unless res
@@ -59,10 +60,20 @@ module CBin
           res = File.exist?(zip_file)
         end
         if res
+
           Pod::UI.title "Uploading binary zip file #{@spec.name} (#{@spec.version})" do
-            command = "curl #{CBin.config.binary_upload_url} -F \"name=#{@spec.name}\" -F \"version=#{@spec.version}\" -F \"annotate=#{@spec.name}_#{@spec.version}_log\" -F \"file=@#{zip_file}\""
+            command = "curl -F \"name=#{@spec.name}\" -F \"version=#{@spec.version}\" -F \"file=@#{zip_file}\" #{CBin.config.binary_upload_url_str}"
             Pod::UI.info "#{command}"
-            `#{command}`
+            json =  `#{command}`
+            Pod::UI.message json
+            url =  JSON.parse(json)["data"]
+            if url
+
+              Pod::UI.message "上传成功"
+            else
+              Pod::UI.message "上传失败"
+            end
+
           end
 #           print <<EOF
 #           上传二进制文件
