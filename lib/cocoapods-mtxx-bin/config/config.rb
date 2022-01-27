@@ -14,7 +14,7 @@ module CBin
       {
           'configuration_env' => { description: '编译环境', default: 'dev', selection: %w[dev debug_iphoneos release_iphoneos] },
           'code_repo_url_list' => { description: '源码私有源 Git 地址 ,支持多私有源,多个私有源用分号区分', default: 'git@techgit.meitu.com:iMeituPic/mtsourcespecs.git' },
-          'binary_repo_url' => { description: '二进制私有源 Git 地址', default: 'git@gitee.com:sunxinglong2020/private-specs.git' },
+          'binary_repo_url' => { description: '二进制私有源 Git 地址', default: 'git@techgit.meitu.com:iMeituPic/mtbinaryspecs.git' },
           'binary_upload_url' => { description: '二进制下载地址，内部会依次传入组件名称与版本', default: 'http://pre.intapi.xiuxiu.meitu.com/internal/file/upload.json' },
           # 'binary_type' => { description: '二进制打包类型', default: 'framework', selection: %w[framework library] },
           'binary_download_url' => { description: '二进制下载地址，内部会依次传入组件名称与版本，替换字符串中的 %s', default: 'https://manhattan-test.obs.cn-north-4.myhuaweicloud.com:443/ios/binary' },
@@ -62,12 +62,7 @@ module CBin
     end
 
     def binary_download_url_str
-      # https://manhattan-test.obs.cn-north-4.myhuaweicloud.com:443/ios/binary/MTPushNotification/4.0.8/MTPushNotification.framework_4.0.8.zip
-      # cut_string = "/%s/%s/%s.framework_%s.zip"
-      # binary_download_url[0,binary_download_url.length - cut_string.length]
       binary_download_url
-      # "http://pre.intapi.xiuxiu.meitu.com/internal/file/upload.json"
-      # CBin.config.binary_download_url
     end
 
     def set_configuration_env(env)

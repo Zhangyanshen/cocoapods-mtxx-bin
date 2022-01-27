@@ -164,18 +164,8 @@ module CBin
         end
         @spec.resources = resources unless resources.empty?
 
-        # extnames = []
-        # extnames << '*.bundle' if code_spec_consumer.resource_bundles.any?
-        # if code_spec_consumer.resources.any?
-        #   extnames += code_spec_consumer.resources.map { |r| File.basename(r) }
-        # end
-        # if extnames.any?
-        #   @spec.resources = framework_contents('').flat_map { |r| extnames.map { |e| "#{r}/#{e}" } }
-        # end
-
         # Source Location
         @spec.source = binary_source
-        puts binary_source
         # Source Code
         @spec.source_files = "#{code_spec.module_name}.framework/Headers/*"
         @spec.public_header_files = "#{code_spec.module_name}.framework/Headers/*"

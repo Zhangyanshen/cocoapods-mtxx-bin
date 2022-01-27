@@ -10,6 +10,7 @@ require 'cocoapods-mtxx-bin/helpers/library_builder'
 require 'cocoapods-mtxx-bin/helpers/sources_helper'
 require 'cocoapods-mtxx-bin/command/bin/repo/push'
 require 'json'
+
 module CBin
   class Upload
     class Helper
@@ -60,28 +61,19 @@ module CBin
           res = File.exist?(zip_file)
         end
         if res
-
           Pod::UI.title "Uploading binary zip file #{@spec.name} (#{@spec.version})" do
             command = "curl -F \"name=#{@spec.name}\" -F \"version=#{@spec.version}\" -F \"file=@#{zip_file}\" #{CBin.config.binary_upload_url_str}"
             Pod::UI.info "#{command}"
-            json =  `#{command}`
+            json = `#{command}`
             Pod::UI.message json
-            url =  JSON.parse(json)["data"]
-            if url
-
-              Pod::UI.message "上传成功"
+            data = JSON.parse(json)["data"]
+            if data
+              Pod::UI.info "#{@spec.name} (#{@spec.version}) 上传成功".green
             else
-              Pod::UI.message "上传失败"
+              Pod::UI.info "#{@spec.name} (#{@spec.version}) 上传失败".red
             end
-
           end
-#           print <<EOF
-#           上传二进制文件
-#           curl #{CBin.config.binary_upload_url} -F "name=#{@spec.name}" -F "version=#{@spec.version}" -F "annotate=#{@spec.name}_#{@spec.version}_log" -F "file=@#{zip_file}"
-# EOF
-#           `curl #{CBin.config.binary_upload_url} -F "name=#{@spec.name}" -F "version=#{@spec.version}" -F "annotate=#{@spec.name}_#{@spec.version}_log" -F "file=@#{zip_file}"` if res
         end
-
         res
       end
 
