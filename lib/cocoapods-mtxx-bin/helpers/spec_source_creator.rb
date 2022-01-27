@@ -175,7 +175,7 @@ module CBin
 
         # Source Location
         @spec.source = binary_source
-
+        puts binary_source
         # Source Code
         @spec.source_files = "#{code_spec.module_name}.framework/Headers/*"
         @spec.public_header_files = "#{code_spec.module_name}.framework/Headers/*"
@@ -273,7 +273,8 @@ module CBin
 
       # "source"字段
       def binary_source
-        { http: format(CBin.config.binary_download_url, code_spec.root.name, code_spec.version), type: CBin.config.download_file_type }
+        url = "#{CBin.config.binary_download_url_str}/#{code_spec.root.name}/#{code_spec.version}/#{code_spec.root.name}.framework_#{code_spec.version}.zip"
+        { http: url, type: CBin.config.download_file_type }
       end
 
       def code_spec_consumer(_platform = :ios)
