@@ -128,7 +128,7 @@ module Pod
             else
               # 获取podfile中的source
               podfile_sources = podfile.sources.map { |source| sources_manager.source_with_name_or_url(source) }
-              source = (podfile_sources + sources_manager.code_source_list).select do |s|
+              source = (sources_manager.code_source_list + podfile_sources).select do |s|
                 s.search(rspec.root.name)
               end.first
             end

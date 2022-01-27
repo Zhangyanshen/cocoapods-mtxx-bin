@@ -137,22 +137,33 @@ module CBin
         # vendored_frameworks | resources | source | source_files | public_header_files
         # license | resource_bundles | vendored_libraries
 
+        # framework绝对路径
+        fwk_abs_path = "#{CBin::Config::Builder.instance.gen_dir}/#{code_spec.root.name}/ios/#{code_spec.module_name}.framework"
+
         # Project Linkin
-        fwks_path = "#{CBin::Config::Builder.instance.gen_dir}/#{code_spec.root.name}/ios/#{code_spec.module_name}.framework/fwks"
+        fwks_path = "#{fwk_abs_path}/fwks"
         fwks = ["#{code_spec.module_name}.framework"]
         if File.exist?(fwks_path)
           fwks << "#{code_spec.module_name}.framework/fwks/*"
         end
         @spec.vendored_frameworks = fwks
 
-        libs_path = "#{CBin::Config::Builder.instance.gen_dir}/#{code_spec.root.name}/ios/#{code_spec.module_name}.framework/libs"
+        libs_path = "#{fwk_abs_path}/libs"
         @spec.vendored_libraries = "#{code_spec.module_name}.framework/libs/*" if File.exist?(libs_path)
 
         # Resources
-        resources_path = "#{CBin::Config::Builder.instance.gen_dir}/#{code_spec.root.name}/ios/#{code_spec.module_name}.framework/resources"
-        if File.exist?(resources_path)
-          @spec.resources = "#{code_spec.module_name}.framework/resources/*"
+        special_resource_ext_str = special_resource_exts.join(',')
+        special_res = Dir.glob("#{fwk_abs_path}/*.{#{special_resource_ext_str}}")
+        resources = []
+        unless special_res.empty?
+          resources << "#{code_spec.module_name}.framework/*.{#{special_resource_ext_str}}"
         end
+        resources_path = "#{fwk_abs_path}/resources"
+        if File.exist?(resources_path)
+          resources << "#{code_spec.module_name}.framework/resources/*"
+        end
+        @spec.resources = resources unless resources.empty?
+
         # extnames = []
         # extnames << '*.bundle' if code_spec_consumer.resource_bundles.any?
         # if code_spec_consumer.resources.any?
@@ -223,6 +234,11 @@ module CBin
           #{@spec.description}
         EOF
         @spec
+      end
+
+      # 特殊的资源后缀
+      def special_resource_exts
+        %w[momd mom cdm nib storyboardc]
       end
 
       # 递归处理subspecs

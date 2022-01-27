@@ -148,7 +148,12 @@ module CBin
         return [] if @file_accessors.nil?
         resources = @file_accessors.flat_map(&:resources)
         return [] if resources.nil? || resources.size == 0
-        resources.compact.map(&:to_s)
+        resources.compact.reject { |res| reject_resource_ext.include?(res.extname) }.map(&:to_s)
+      end
+
+      # 需要排除的资源文件后缀
+      def reject_resource_ext
+        %w[.xcdatamodeld .xcdatamodel .xcmappingmodel .xib .storyboard]
       end
 
       # 合并静态库
