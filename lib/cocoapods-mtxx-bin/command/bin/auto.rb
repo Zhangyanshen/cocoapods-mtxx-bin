@@ -44,7 +44,7 @@ module Pod
           @all_make = argv.flag?('all-make', false)
           @verbose = argv.flag?('verbose', false)
           @sources = argv.option('sources', 'https://cdn.cocoapods.org')
-          @config = argv.option('configuration', 'Debug')
+          @config = argv.option('configuration', 'Release')
 
           super
 
