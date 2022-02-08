@@ -62,12 +62,12 @@ module CBin
         end
         if res
           Pod::UI.title "Uploading binary zip file #{@spec.name} (#{@spec.version})" do
-            command = "curl -F \"name=#{@spec.name}\" -F \"version=#{@spec.version}\" -F \"file=@#{zip_file}\" #{CBin.config.binary_upload_url_str}"
+            command = "curl -F \"name=#{@spec.module_name}\" -F \"version=#{@spec.version}\" -F \"file=@#{zip_file}\" #{CBin.config.binary_upload_url_str}"
             Pod::UI.info "#{command}"
             json = `#{command}`
-            Pod::UI.message json
-            data = JSON.parse(json)["data"]
-            if data
+            Pod::UI.info json
+            error_code = JSON.parse(json)["error_code"]
+            if error_code == 0
               Pod::UI.info "#{@spec.name} (#{@spec.version}) 上传成功".green
             else
               Pod::UI.info "#{@spec.name} (#{@spec.version}) 上传失败".red
