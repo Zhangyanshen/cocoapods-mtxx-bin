@@ -66,8 +66,8 @@ module CBin
             Pod::UI.info "#{command}"
             json = `#{command}`
             Pod::UI.message json
-            data = JSON.parse(json)["data"]
-            if data
+            code = JSON.parse(json)["error_code"]
+            if code && code == 0
               Pod::UI.info "#{@spec.name} (#{@spec.version}) 上传成功".green
             else
               Pod::UI.info "#{@spec.name} (#{@spec.version}) 上传失败".red
