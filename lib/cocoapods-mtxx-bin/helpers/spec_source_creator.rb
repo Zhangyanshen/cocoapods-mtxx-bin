@@ -263,7 +263,7 @@ module CBin
 
       # "source"字段
       def binary_source
-        url = "#{CBin.config.binary_download_url_str}/#{code_spec.root.name}/#{code_spec.version}/#{code_spec.root.name}.framework_#{code_spec.version}.zip"
+        url = "#{CBin.config.binary_download_url_str}/#{code_spec.root.module_name}/#{code_spec.version}/#{code_spec.root.module_name}.framework_#{code_spec.version}.zip"
         { http: url, type: CBin.config.download_file_type }
       end
 
