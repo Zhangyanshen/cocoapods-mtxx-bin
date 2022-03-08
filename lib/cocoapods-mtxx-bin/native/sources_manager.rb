@@ -13,6 +13,7 @@ module Pod
       # 二进制 source
       def binary_source
         source_with_name_or_url(CBin.config.binary_repo_url)
+        # source_with_name_or_url('git@github.com:Zhangyanshen/example-private-spec-bin.git')
       end
     end
   end

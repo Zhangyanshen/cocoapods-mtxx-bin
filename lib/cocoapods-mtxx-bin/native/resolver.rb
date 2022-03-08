@@ -87,6 +87,18 @@ module Pod
       end
     end
 
+    # 读取黑名单
+    def read_black_list
+      project_root = Pod::Config.instance.project_root
+      config_file = File.join(project_root, 'BinConfig.yaml')
+      return nil unless File.exist?(config_file)
+      config = YAML.load(File.open(config_file))
+      return nil if config.nil?
+      install_config = config['install_config']
+      return nil if install_config.nil?
+      install_config['black_list']
+    end
+
     # >= 1.4.0 才有 resolver_specs_by_target 以及 ResolverSpecification
     # >= 1.5.0 ResolverSpecification 才有 source，供 install 或者其他操作时，输入 source 变更
     #
@@ -97,6 +109,10 @@ module Pod
 
         sources_manager = Config.instance.sources_manager
         use_source_pods = podfile.use_source_pods
+
+        # 从BinConfig读取black_list
+        black_list = read_black_list
+        use_source_pods.concat(black_list).uniq! unless black_list.nil?
 
         missing_binary_specs = []
         specs_by_target.each do |target, rspecs|
@@ -137,6 +153,7 @@ module Pod
 
             raise Informative, "#{rspec.root.name}(#{spec_version})的podspec未找到，请执行 pod repo update 或添加相应的source源" unless source
 
+            UI.message "------------------- 分界线 -----------------------"
             UI.message "- 开始处理 #{rspec.spec.name}(#{spec_version}) 组件."
 
             begin
@@ -145,7 +162,7 @@ module Pod
 
               raise Informative, "Specification of #{rspec.root.name}(#{spec_version}) is nil" unless specification
 
-              UI.message "#{rspec.root.name} #{spec_version} \r\n specification =#{specification} "
+              UI.message "#{rspec.root.name} #{spec_version} \r\n specification = #{specification} "
               # 组件是 subspec
               if rspec.spec.subspec?
                 specification = specification.subspec_by_name(rspec.name, false, true)
@@ -166,11 +183,11 @@ module Pod
                       else
                         ResolverSpecification.new(specification, used_by_only, source)
                       end
-              UI.message "组装新的 rspec ，替换原 rspec #{rspec.root.name} #{spec_version} \r\n specification =#{specification} \r\n #{rspec} "
+              UI.message "组装新的 rspec ，替换原 rspec #{rspec.root.name} #{spec_version} specification =#{specification} #{rspec} "
             rescue Pod::StandardError => e
               # 没有从新的 source 找到对应版本组件，直接返回原 rspec
               missing_binary_specs << rspec.spec if use_binary
-              # missing_binary_specs << rspec.spec
+              UI.message "【#{rspec.spec.name} | #{rspec.spec.version}】组件无对应源码版本 , 将采用二进制版本依赖.".red unless use_binary
               rspec
             end
             rspec

@@ -1,6 +1,7 @@
 require 'cocoapods-mtxx-bin/native/sources_manager'
 require 'cocoapods-mtxx-bin/command/bin/repo/update'
 require 'cocoapods/user_interface'
+require 'yaml'
 
 Pod::HooksManager.register('cocoapods-mtxx-bin', :pre_install) do |_context, _|
   require 'cocoapods-mtxx-bin/native'
@@ -42,6 +43,17 @@ Pod::HooksManager.register('cocoapods-mtxx-bin', :source_provider) do |context, 
   sources_manager = Pod::Config.instance.sources_manager
   podfile = Pod::Config.instance.podfile
   if podfile
+    # 读取配置文件
+    project_root = Pod::Config.instance.project_root
+    config_file = File.join(project_root, 'BinConfig.yaml')
+    if File.exist?(config_file)
+      config = YAML.load(File.open(config_file))
+      unless config.nil?
+        build_config = config['install_config'] || {}
+        use_binary = build_config['use_binary'] || false
+        podfile.use_binaries!(use_binary) if use_binary
+      end
+    end
     # 添加源码私有源 && 二进制私有源
     added_sources = sources_manager.code_source_list
     if podfile.use_binaries? || podfile.use_binaries_selector
