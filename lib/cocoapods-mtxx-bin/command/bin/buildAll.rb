@@ -58,6 +58,7 @@ module Pod
           @pre_build = build_config['pre_build']
           @post_build = build_config['post_build']
           @black_list = build_config['black_list']
+          @write_list = build_config['write_list']
         end
 
         # 执行pre build
@@ -120,13 +121,14 @@ module Pod
               local_pods << pod_target.pod_name if @sandbox.local?(pod_target.pod_name)
               external_pods << pod_target.pod_name if @sandbox.checkout_sources[pod_target.pod_name]
               binary_pods << pod_target.pod_name unless pod_target.should_build?
+              # 是否跳过编译
+              next if skip_build?(pod_target)
               # 已经有相应的二进制版本
               if has_created_binary?(pod_target.pod_name, version)
                 created_pods << pod_target.pod_name
                 UI.puts "#{pod_target.pod_name}(#{version}) 已经有二进制版本了".red
                 next
               end
-              next if skip_build?(pod_target)
               # 构建产物
               builder = Builder.new(pod_target, @sandbox.checkout_sources)
               result = builder.build
@@ -168,7 +170,8 @@ module Pod
           !pod_target.should_build? ||
             @sandbox.local?(pod_target.pod_name) ||
             @sandbox.checkout_sources[pod_target.pod_name] ||
-            (!@black_list.nil? && @black_list.include?(pod_target.pod_name))
+            (!@black_list.nil? && @black_list.include?(pod_target.pod_name)) ||
+            (!@write_list.nil? && !@write_list.empty? && !@write_list.include?(pod_target.pod_name))
         end
 
         # 展示结果
