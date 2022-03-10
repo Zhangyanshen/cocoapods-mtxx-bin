@@ -5,8 +5,9 @@ module CBin
     class ZipFileHelper
       include Pod
 
-      def initialize(pod_target, product_dir, build_as_framework = false)
+      def initialize(pod_target, version, product_dir, build_as_framework = false)
         @pod_target = pod_target
+        @version = version
         @product_dir = product_dir
         @build_as_framework = build_as_framework
       end
@@ -20,8 +21,10 @@ module CBin
             UI.info "#{Dir.pwd}目录下无 #{zip_file_name} 文件".red
             return false
           end
-          UI.info "Uploading binary zip file #{@pod_target.root_spec.name} (#{@pod_target.root_spec.version})".yellow do
-            command = "curl -F \"name=#{@pod_target.product_module_name}\" -F \"version=#{@pod_target.root_spec.version}\" -F \"file=@#{zip_file}\" #{CBin.config.binary_upload_url_str}"
+          UI.info "Uploading binary zip file #{@pod_target.root_spec.name} (#{@version || @pod_target.root_spec.version})".yellow do
+            upload_url = CBin.config.binary_upload_url_str
+            # upload_url = "http://localhost:8080/frameworks"
+            command = "curl -F \"name=#{@pod_target.product_module_name}\" -F \"version=#{@version || @pod_target.root_spec.version}\" -F \"file=@#{zip_file}\" #{upload_url}"
             UI.info "#{command}"
             json = `#{command}`
             UI.info json

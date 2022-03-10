@@ -1,12 +1,15 @@
 require 'cocoapods-mtxx-bin/helpers/buildAll/builder'
 require 'cocoapods-mtxx-bin/helpers/buildAll/podspec_util'
 require 'cocoapods-mtxx-bin/helpers/buildAll/zip_file_helper'
+require 'cocoapods-mtxx-bin/helpers/buildAll/bin_helper'
 require 'yaml'
+require 'digest'
 
 module Pod
   class Command
     class Bin < Command
       class BuildAll < Bin
+        include CBin::BuildAll
 
         self.summary = '根据壳工程打包所有依赖组件为静态库（static framework）'
         self.description = <<-DESC
@@ -111,19 +114,27 @@ module Pod
             local_pods = []
             external_pods = []
             binary_pods = []
+            created_pods = []
             pod_targets.map do |pod_target|
-              local_pods << "#{@podfile}" if @sandbox.local?(pod_target.pod_name)
-              external_pods << "#{@podfile}" if @sandbox.checkout_sources[pod_target.pod_name]
-              binary_pods << "#{@podfile}" unless pod_target.should_build?
+              version = BinHelper.version(pod_target.pod_name, pod_target.version, @analyze_result.specifications)
+              local_pods << pod_target.pod_name if @sandbox.local?(pod_target.pod_name)
+              external_pods << pod_target.pod_name if @sandbox.checkout_sources[pod_target.pod_name]
+              binary_pods << pod_target.pod_name unless pod_target.should_build?
+              # 已经有相应的二进制版本
+              if has_created_binary?(pod_target.pod_name, version)
+                created_pods << pod_target.pod_name
+                UI.puts "#{pod_target.pod_name}(#{version}) 已经有二进制版本了".red
+                next
+              end
               next if skip_build?(pod_target)
               # 构建产物
-              builder = CBin::BuildAll::Builder.new(pod_target, @sandbox.checkout_sources)
+              builder = Builder.new(pod_target, @sandbox.checkout_sources)
               result = builder.build
               fail_pods << "#{@podfile}" unless result
               next unless result
               builder.create_binary
               # 压缩并上传zip
-              zip_helper = CBin::BuildAll::ZipFileHelper.new(pod_target, builder.product_dir, builder.build_as_framework)
+              zip_helper = ZipFileHelper.new(pod_target, version, builder.product_dir, builder.build_as_framework)
               result = zip_helper.zip_lib
               fail_pods << "#{@podfile}" unless result
               next unless result
@@ -131,7 +142,7 @@ module Pod
               fail_pods << "#{@podfile}" unless result
               next unless result
               # 生成二进制podspec并上传
-              podspec_creator = CBin::BuildAll::PodspecUtil.new(pod_target, builder.build_as_framework)
+              podspec_creator = PodspecUtil.new(pod_target, version, builder.build_as_framework)
               bin_spec = podspec_creator.create_binary_podspec
               bin_spec_file = podspec_creator.write_binary_podspec(bin_spec)
               podspec_creator.push_binary_podspec(bin_spec_file)
@@ -143,8 +154,9 @@ module Pod
               'Fail' => fail_pods,
               'Local' => local_pods,
               'External' => external_pods,
-              'Binary' => binary_pods,
-              'BlackList' => @black_list || []
+              'No Source File' => binary_pods,
+              'Created Binary' => created_pods,
+              'Black List' => @black_list || []
             }
             show_results(results)
             results
@@ -161,38 +173,30 @@ module Pod
 
         # 展示结果
         def show_results(results)
-          puts "\n编译结果："
-          UI.puts "———————————————————————".green
-          UI.puts "|#{"Type".center(10)}|#{"Count".center(10)}|".green
-          UI.puts "———————————————————————".green
+          puts "\n打包结果："
+          UI.puts "——————————————————————————————————".green
+          UI.puts "|#{"Type".center(20)}|#{"Count".center(11)}|".green
+          UI.puts "——————————————————————————————————".green
           results.each do |key, value|
-            UI.puts "|#{key.center(10)}|#{value.size.to_s.center(10)}|".green
+            UI.puts "|#{key.center(20)}|#{value.size.to_s.center(11)}|".green
           end
-          UI.puts "———————————————————————".green
+          UI.puts "——————————————————————————————————".green
+
+          # 打印出失败的 target
+          unless results['Fail'].empty?
+            UI.puts "\n打包失败的库：#{results['Fail']}".red
+          end
         end
 
         # 是否已经有二进制版本了
-        def has_create_binary?(pod_target)
-          pod_name = pod_target.pod_name
-          version = pod_target.version
+        def has_created_binary?(pod_name, version)
           return false if pod_name.nil? || version.nil?
           sources_manager = Config.instance.sources_manager
           binary_source = sources_manager.binary_source
           result = false
           begin
             specification = binary_source.specification(pod_name, version)
-            if specification.nil?
-              return result
-            end
-            if !pod_target.specs.nil? && !specification.subspecs.nil?
-              specs = pod_target.specs.map(&:name)
-              bin_specs = specification.subspecs.map(&:name)
-              result = specs == bin_specs
-            elsif pod_target.specs.nil? && specification.subspecs.nil?
-              result = true
-            else
-              result = false
-            end
+            result = true unless specification.nil?
           rescue Pod::StandardError => e
             result = false
           end

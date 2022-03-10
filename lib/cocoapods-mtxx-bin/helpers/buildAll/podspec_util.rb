@@ -4,8 +4,9 @@ module CBin
     class PodspecUtil
       include Pod
 
-      def initialize(pod_target, build_as_framework = false )
+      def initialize(pod_target, version, build_as_framework = false )
         @pod_target = pod_target
+        @version = version
         @build_as_framework = build_as_framework
       end
 
@@ -61,6 +62,7 @@ module CBin
         UI.info "推送podspec：#{@pod_target}".yellow
         return unless File.exist?(binary_podsepc_json)
         repo_name = Pod::Config.instance.sources_manager.binary_source.name
+        # repo_name = 'example-private-spec-bin'
         argvs = %W[#{repo_name} #{binary_podsepc_json} --skip-import-validation --use-libraries --allow-warnings --verbose]
 
         push = Pod::Command::Repo::Push.new(CLAide::ARGV.new(argvs))
@@ -136,12 +138,13 @@ module CBin
       end
 
       def source
-        url = "http://localhost:8080/frameworks/#{@pod_target.product_module_name}/#{version}/zip"
+        # url = "http://localhost:8080/frameworks/#{@pod_target.root_spec.module_name}/#{version}/zip"
+        url = "#{CBin.config.binary_download_url_str}/#{@pod_target.root_spec.module_name}/#{version}/#{@pod_target.root_spec.module_name}.framework_#{version}.zip"
         { http: url, type: 'zip' }
       end
 
       def version
-        @pod_target.root_spec.version
+        @version || @pod_target.root_spec.version
       end
 
       # 特殊的资源后缀
