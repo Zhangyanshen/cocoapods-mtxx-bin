@@ -119,6 +119,7 @@ module Pod
           next if value.nil?
           # 获取 Pod::Dependency
           dep = value.payload
+          next if dep.external_source
           # 修改版本号限制
           requirements = dep.requirement.as_list.map do |req|
             req_arr = req.split('.').delete_if { |r| r.include?('bin') }
