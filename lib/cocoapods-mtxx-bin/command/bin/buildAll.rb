@@ -14,6 +14,7 @@ module Pod
         CDN = 'https://cdn.cocoapods.org/'.freeze
         MASTER_HTTP = 'https://github.com/CocoaPods/Specs.git'.freeze
         MASTER_SSH = 'git@github.com:CocoaPods/Specs.git'.freeze
+        MT_REPO = 'techgit.meitu.com'.freeze
 
         self.summary = '根据壳工程打包所有依赖组件为静态库（static framework）'
         self.description = <<-DESC
@@ -77,7 +78,8 @@ module Pod
             return if podfile.nil?
             sources_manager = Pod::Config.instance.sources_manager
             podfile.sources.map { |src|
-              next if src.include?(CDN) || src.include?(MASTER_HTTP) || src.include?(MASTER_SSH)
+              # next if src.include?(CDN) || src.include?(MASTER_HTTP) || src.include?(MASTER_SSH)
+              next unless src.include?(MT_REPO)
               UI.message "Update repo: #{src}"
               source = sources_manager.source_with_name_or_url(src)
               source.update(false )
