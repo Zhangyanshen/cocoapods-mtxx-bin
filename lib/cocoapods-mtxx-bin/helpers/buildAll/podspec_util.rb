@@ -83,7 +83,7 @@ module CBin
 
       # 处理subspecs
       def handle_subspecs(spec)
-        if spec['subspecs'] && spec['subspecs'].size > 0
+        if spec && spec['subspecs'] && spec['subspecs'].size > 0
           # 全部的subspecs
           spec_names = @pod_target.specs.map(&:name).select { |spec_name| spec_name.include?('/') }.map { |spec_name| spec_name.split('/')[1] }
           spec['subspecs'] = spec['subspecs'].select { |subspec| spec_names.include?(subspec['name']) }
