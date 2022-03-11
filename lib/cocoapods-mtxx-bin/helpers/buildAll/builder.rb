@@ -115,7 +115,7 @@ module CBin
         archs = simulator ? 'x86_64' : 'arm64'
         product_dir = product_dir()
         temp_dir = temp_dir()
-        pod_project_path = Dir.pwd + "./Pods/#{@pod_target}.xcodeproj"
+        pod_project_path = Dir.pwd + "/Pods/#{@pod_target}.xcodeproj"
         if File.exist?(pod_project_path)
           project = "./Pods/#{@pod_target}.xcodeproj"
         else
@@ -146,13 +146,13 @@ clean build \
       # 合并真机模拟器
       def merge_device_sim
         if build_as_framework
-          device_lib_dir = "#{product_dir}/#{iphoneos}/#{@pod_target}/#{@pod_target.framework_name}/#{@pod_target}"
-          sim_lib_dir = "#{product_dir}/#{iphonesimulator}/#{@pod_target}/#{@pod_target.framework_name}/#{@pod_target}"
+          device_lib_dir = "#{product_dir}/#{iphoneos}/#{@pod_target}/#{@pod_target.framework_name}/#{@pod_target.product_module_name}"
+          sim_lib_dir = "#{product_dir}/#{iphonesimulator}/#{@pod_target}/#{@pod_target.framework_name}/#{@pod_target.product_module_name}"
         else
           device_lib_dir = "#{product_dir}/#{iphoneos}/#{@pod_target}/#{@pod_target.static_library_name}"
           sim_lib_dir = "#{product_dir}/#{iphonesimulator}/#{@pod_target}/#{@pod_target.static_library_name}"
         end
-        output = "#{result_product_dir}/#{@pod_target}"
+        output = "#{result_product_dir}/#{@pod_target.product_module_name}"
         libs = [device_lib_dir, sim_lib_dir]
         FileUtils.mkdir(result_product_dir) unless File.exist?(result_product_dir)
         `lipo -create -output #{output} #{libs.join(' ')}` unless libs.empty?
@@ -160,7 +160,7 @@ clean build \
 
       # 创建 xxx.framework 文件夹
       def create_framework_dir
-        fwk_path = "#{product_dir}/#{@pod_target}.framework"
+        fwk_path = "#{product_dir}/#{@pod_target.product_module_name}.framework"
         FileUtils.rm_rf(fwk_path) if File.exist?(fwk_path)
         FileUtils.mkdir(fwk_path)
       end
@@ -230,15 +230,15 @@ ibtool \
       def copy_headers(public = true)
         if public
           headers = @file_accessors.map(&:public_headers).flatten.compact.uniq
-          header_dir = "#{headers_dir}"
+          header_dir = headers_dir
           if @pod_target.uses_swift?
             umbrella_header = "#{product_dir}/#{iphoneos}/#{@pod_target}/#{@pod_target}-umbrella.h"
-            swift_header = "#{product_dir}/#{iphoneos}/#{@pod_target}/Swift\\ Compatibility\\ Header/#{@pod_target}-Swift.h"
+            swift_header = "#{product_dir}/#{iphoneos}/#{@pod_target}/Swift\\ Compatibility\\ Header/#{@pod_target.product_module_name}-Swift.h"
             headers.concat([umbrella_header, swift_header])
           end
         else
           headers = @file_accessors.map(&:private_headers).flatten.compact.uniq
-          header_dir = "#{result_product_dir}/PrivateHeaders"
+          header_dir = private_headers_dir
         end
         return if headers.empty?
         FileUtils.mkdir(header_dir) unless File.exist?(header_dir)
@@ -311,13 +311,13 @@ ibtool \
       # 拷贝swiftmodule
       def copy_swiftmodules
         if build_as_framework
-          swift_module = "#{modules_dir}/#{@pod_target}.swiftmodule"
-          src_swift = "#{product_dir}/#{iphonesimulator}/#{@pod_target}/#{@pod_target.framework_name}/Modules/#{@pod_target}.swiftmodule"
+          swift_module = "#{modules_dir}/#{@pod_target.product_module_name}.swiftmodule"
+          src_swift = "#{product_dir}/#{iphonesimulator}/#{@pod_target}/#{@pod_target.framework_name}/Modules/#{@pod_target.product_module_name}.swiftmodule"
         else
           FileUtils.mkdir(modules_dir) unless File.exist?(modules_dir)
-          `cp -rf #{product_dir}/#{iphoneos}/#{@pod_target}/#{@pod_target}.swiftmodule #{modules_dir}`
-          swift_module = "#{modules_dir}/#{@pod_target}.swiftmodule"
-          src_swift = "#{product_dir}/#{iphonesimulator}/#{@pod_target}/#{@pod_target}.swiftmodule"
+          `cp -rf #{product_dir}/#{iphoneos}/#{@pod_target}/#{@pod_target.product_module_name}.swiftmodule #{modules_dir}`
+          swift_module = "#{modules_dir}/#{@pod_target.product_module_name}.swiftmodule"
+          src_swift = "#{product_dir}/#{iphonesimulator}/#{@pod_target}/#{@pod_target.product_module_name}.swiftmodule"
         end
         if File.exist?(swift_module)
           `cp -af #{src_swift}/* #{swift_module}`
@@ -334,7 +334,7 @@ ibtool \
         FileUtils.rm_f(module_map) if File.exist?(module_map)
         File.open(module_map, "w+") do |f|
           content = <<-MODULEMAP
-framework module #{@pod_target} {
+framework module #{@pod_target.product_module_name} {
   umbrella header "#{@pod_target}-umbrella.h"
 
   export *
@@ -345,8 +345,8 @@ framework module #{@pod_target} {
           if @pod_target.uses_swift?
             content += <<-SWIFT
 
-module #{@pod_target}.Swift {
-  header "#{@pod_target}-Swift.h"
+module #{@pod_target.product_module_name}.Swift {
+  header "#{@pod_target.product_module_name}-Swift.h"
   requires objc
 }
             SWIFT

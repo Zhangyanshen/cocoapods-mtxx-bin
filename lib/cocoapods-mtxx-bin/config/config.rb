@@ -122,8 +122,6 @@ module CBin
 
     def config
       @config ||= begin
-                    msg = "cocoapods-mtxx-bin #{CBin::VERSION} 版本"
-                    puts "\033[44m#{msg}\033[0m\n"
                     @config = OpenStruct.new load_config
         validate!
         @config

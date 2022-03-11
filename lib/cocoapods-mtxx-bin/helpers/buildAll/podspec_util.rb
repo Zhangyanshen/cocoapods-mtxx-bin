@@ -27,7 +27,7 @@ module CBin
         spec['vendored_libraries'] = "#{root_dir}/libs/*.a"
         spec['vendored_frameworks'] = %W[#{root_dir} #{root_dir}/fwks/*.framework]
         # 处理资源
-        resources = ["#{root_dir}/*.{#{special_resource_exts.join(',')}}", "#{root_dir}/resources/*"]
+        resources = %W[#{root_dir}/*.{#{special_resource_exts.join(',')}} #{root_dir}/resources/*]
         spec['resources'] = resources
         # 删除无用的字段
         delete_unused(spec)
