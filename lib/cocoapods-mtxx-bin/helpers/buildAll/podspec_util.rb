@@ -85,8 +85,8 @@ module CBin
       def handle_subspecs(spec)
         if spec && spec['subspecs'] && spec['subspecs'].size > 0
           # 全部的subspecs
-          spec_names = @pod_target.specs.map(&:name).select { |spec_name| spec_name.include?('/') }.map { |spec_name| spec_name.split('/')[1] }
-          spec['subspecs'] = spec['subspecs'].select { |subspec| spec_names.include?(subspec['name']) }
+          # spec_names = @pod_target.specs.map(&:name).select { |spec_name| spec_name.include?('/') }.map { |spec_name| spec_name.split('/')[1] }
+          # spec['subspecs'] = spec['subspecs'].select { |subspec| spec_names.include?(subspec['name']) }
           bin_subspec = {
             'name' => 'Binary',
             'source_files' => spec['source_files'],
@@ -114,7 +114,7 @@ module CBin
           # 处理单个subspec
           handle_single_subspec(s)
           # 递归处理
-          handle_subspecs(s['subspecs'])
+          recursive_handle_subspecs(s['subspecs'])
         end
       end
 
