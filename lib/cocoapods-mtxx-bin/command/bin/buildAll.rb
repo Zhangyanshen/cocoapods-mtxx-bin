@@ -167,53 +167,59 @@ module Pod
             binary_pods = []
             created_pods = []
             pod_targets.map do |pod_target|
-              version = BinHelper.version(pod_target.pod_name, pod_target.version, @analyze_result.specifications)
-              # 本地库
-              if @sandbox.local?(pod_target.pod_name)
-                local_pods << pod_target.pod_name
-                show_skip_tip("#{pod_target.pod_name} 是本地库")
+              begin
+                version = BinHelper.version(pod_target.pod_name, pod_target.version, @analyze_result.specifications)
+                # 本地库
+                if @sandbox.local?(pod_target.pod_name)
+                  local_pods << pod_target.pod_name
+                  show_skip_tip("#{pod_target.pod_name} 是本地库")
+                  next
+                end
+                # 外部源（如 git）
+                if @sandbox.checkout_sources[pod_target.pod_name]
+                  external_pods << pod_target.pod_name
+                  show_skip_tip("#{pod_target.pod_name} 以external方式引入")
+                  next
+                end
+                # 无源码
+                if !@sandbox.local?(pod_target.pod_name) && !pod_target.should_build?
+                  binary_pods << pod_target.pod_name
+                  show_skip_tip("#{pod_target.pod_name} 无需编译")
+                  next
+                end
+                # 已经有相应的二进制版本
+                if has_created_binary?(pod_target.pod_name, version)
+                  created_pods << pod_target.pod_name
+                  show_skip_tip("#{pod_target.pod_name}(#{version}) 已经有二进制版本了")
+                  next
+                end
+                # 是否跳过编译（黑名单、白名单）
+                next if skip_build?(pod_target)
+                # 构建产物
+                builder = Builder.new(pod_target, @sandbox.checkout_sources)
+                result = builder.build
+                fail_pods << pod_target.pod_name unless result
+                next unless result
+                builder.create_binary
+                # 压缩并上传zip
+                zip_helper = ZipFileHelper.new(pod_target, version, builder.product_dir, builder.build_as_framework)
+                result = zip_helper.zip_lib
+                fail_pods << pod_target.pod_name unless result
+                next unless result
+                result = zip_helper.upload_zip_lib
+                fail_pods << pod_target.pod_name unless result
+                next unless result
+                # 生成二进制podspec并上传
+                podspec_creator = PodspecUtil.new(pod_target, version, builder.build_as_framework)
+                bin_spec = podspec_creator.create_binary_podspec
+                bin_spec_file = podspec_creator.write_binary_podspec(bin_spec)
+                podspec_creator.push_binary_podspec(bin_spec_file)
+                success_pods << pod_target.pod_name
+              rescue Pod::StandardError => e
+                UI.info "#{pod_target} 编译失败，原因：#{e}".red
+                fail_pods << pod_target.pod_name
                 next
               end
-              # 外部源（如 git）
-              if @sandbox.checkout_sources[pod_target.pod_name]
-                external_pods << pod_target.pod_name
-                show_skip_tip("#{pod_target.pod_name} 以external方式引入")
-                next
-              end
-              # 无源码
-              if !@sandbox.local?(pod_target.pod_name) && !pod_target.should_build?
-                binary_pods << pod_target.pod_name
-                show_skip_tip("#{pod_target.pod_name} 无需编译")
-                next
-              end
-              # 已经有相应的二进制版本
-              if has_created_binary?(pod_target.pod_name, version)
-                created_pods << pod_target.pod_name
-                show_skip_tip("#{pod_target.pod_name}(#{version}) 已经有二进制版本了")
-                next
-              end
-              # 是否跳过编译（黑名单、白名单）
-              next if skip_build?(pod_target)
-              # 构建产物
-              builder = Builder.new(pod_target, @sandbox.checkout_sources)
-              result = builder.build
-              fail_pods << pod_target.pod_name unless result
-              next unless result
-              builder.create_binary
-              # 压缩并上传zip
-              zip_helper = ZipFileHelper.new(pod_target, version, builder.product_dir, builder.build_as_framework)
-              result = zip_helper.zip_lib
-              fail_pods << pod_target.pod_name unless result
-              next unless result
-              result = zip_helper.upload_zip_lib
-              fail_pods << pod_target.pod_name unless result
-              next unless result
-              # 生成二进制podspec并上传
-              podspec_creator = PodspecUtil.new(pod_target, version, builder.build_as_framework)
-              bin_spec = podspec_creator.create_binary_podspec
-              bin_spec_file = podspec_creator.write_binary_podspec(bin_spec)
-              podspec_creator.push_binary_podspec(bin_spec_file)
-              success_pods << pod_target.pod_name
             end
             results = {
               'Total' => pod_targets,
