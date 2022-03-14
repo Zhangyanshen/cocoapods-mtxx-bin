@@ -233,7 +233,7 @@ module Pod
 
         if missing_binary_specs.any?
           missing_binary_specs.uniq.each do |spec|
-            UI.message "【#{spec.name} | #{spec.version}】组件无对应二进制版本 , 将采用源码依赖."
+            UI.message "【#{spec.name} | #{spec.version}】组件无对应二进制版本 , 将采用源码依赖." unless spec.root.source[:type] == 'zip'
           end
           # 下面的代码为了实现 auto 命令的 --all-make
           Pod::Command::Bin::Archive.missing_binary_specs(missing_binary_specs)
