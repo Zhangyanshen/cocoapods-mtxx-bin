@@ -77,7 +77,7 @@ module Pod
           UI.title "Repo update".green do
             return if podfile.nil?
             sources_manager = Pod::Config.instance.sources_manager
-            podfile.sources.map { |src|
+            podfile.sources.uniq.map { |src|
               # next if src.include?(CDN) || src.include?(MASTER_HTTP) || src.include?(MASTER_SSH)
               next unless src.include?(MT_REPO)
               UI.message "Update repo: #{src}"

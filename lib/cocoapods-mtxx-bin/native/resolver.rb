@@ -179,8 +179,8 @@ module Pod
               spec_version = CBin::BuildAll::BinHelper.version(rspec.root.name, rspec.spec.version, specifications)
             else
               # 获取podfile中的source
-              podfile_sources = podfile.sources.map { |source| sources_manager.source_with_name_or_url(source) }
-              source = (sources_manager.code_source_list + podfile_sources).select do |s|
+              podfile_sources = podfile.sources.uniq.map { |source| sources_manager.source_with_name_or_url(source) }
+              source = (sources_manager.code_source_list + podfile_sources).uniq.select do |s|
                 s.search(rspec.root.name)
               end.first
               spec_version = rspec.spec.version
