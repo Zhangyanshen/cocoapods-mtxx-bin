@@ -15,7 +15,6 @@ module CBin
       # 上传静态库
       def upload_zip_lib
         Dir.chdir(@product_dir) do
-          zip_file_name = "#{@pod_target.framework_name}.zip"
           zip_file = File.join(Dir.pwd, "#{zip_file_name}")
           unless File.exist?(zip_file)
             UI.info "#{Dir.pwd}目录下无 #{zip_file_name} 文件".red
@@ -44,14 +43,14 @@ module CBin
       def zip_lib
         Dir.chdir(@product_dir) do
           input_library = "#{@pod_target.framework_name}"
-          output_library = "#{@product_dir}/#{input_library}.zip"
+          output_library = File.join(Dir.pwd, zip_file_name)
           FileUtils.rm_f(output_library) if File.exist?(output_library)
           unless File.exist?(input_library)
             UI.info "没有需要压缩的二进制文件：#{input_library}".red
             return false
           end
 
-          UI.info "Compressing #{input_library} into #{input_library}.zip".yellow do
+          UI.info "Compressing #{input_library} into #{zip_file_name}".yellow do
             command = "zip --symlinks -r #{output_library} #{input_library}"
             UI.info "#{command}"
             `#{command}`
@@ -62,6 +61,13 @@ module CBin
             return true
           end
         end
+      end
+
+      # zip文件名字
+      def zip_file_name
+        @zip_file_name ||= begin
+                             "#{@pod_target.framework_name}_#{@version || @pod_target.root_spec.version}.zip"
+                           end
       end
 
     end

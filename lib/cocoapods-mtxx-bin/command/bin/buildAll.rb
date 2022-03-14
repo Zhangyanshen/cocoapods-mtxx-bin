@@ -243,8 +243,8 @@ module Pod
 
         # 是否跳过编译
         def skip_build?(pod_target)
-          (!@black_list.nil? && @black_list.include?(pod_target.pod_name)) ||
-            (!@write_list.nil? && !@write_list.empty? && !@write_list.include?(pod_target.pod_name))
+          (!@write_list.nil? && !@write_list.empty? && !@write_list.include?(pod_target.pod_name)) ||
+            (!@black_list.nil? && !@black_list.empty? && @black_list.include?(pod_target.pod_name))
         end
 
         # 展示结果
