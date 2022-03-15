@@ -24,13 +24,15 @@ module Pod
         def self.options
           [
             %w[--clean 删除编译临时目录],
-            %w[--repo-update 更新Podfile中指定的repo仓库]
+            %w[--repo-update 更新Podfile中指定的repo仓库],
+            %w[--full-build 是否全量编译]
           ].concat(super).uniq
         end
 
         def initialize(argv)
           @clean = argv.flag?('clean', false )
           @repo_update = argv.flag?('repo-update', false )
+          @full_build = argv.flag?('full-build', false )
           @base_dir = "#{Pathname.pwd}/build_pods"
           super
         end
@@ -158,7 +160,7 @@ module Pod
 
         # 构建所有pod_targets
         def build_pod_targets
-          UI.title "Build all pod targets".green do
+          UI.title "Build all pod targets(#{@full_build ? '全量打包' : '非全量打包'})".green do
             pod_targets = @analyze_result.pod_targets.uniq
             success_pods = []
             fail_pods = []
@@ -187,8 +189,8 @@ module Pod
                   show_skip_tip("#{pod_target.pod_name} 无需编译")
                   next
                 end
-                # 已经有相应的二进制版本
-                if has_created_binary?(pod_target.pod_name, version)
+                # 非全量编译且已经有相应的二进制版本
+                if !@full_build && has_created_binary?(pod_target.pod_name, version)
                   created_pods << pod_target.pod_name
                   show_skip_tip("#{pod_target.pod_name}(#{version}) 已经有二进制版本了")
                   next
@@ -243,6 +245,7 @@ module Pod
 
         # 是否跳过编译
         def skip_build?(pod_target)
+          return false if @full_build
           (!@write_list.nil? && !@write_list.empty? && !@write_list.include?(pod_target.pod_name)) ||
             (!@black_list.nil? && !@black_list.empty? && @black_list.include?(pod_target.pod_name))
         end
