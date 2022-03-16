@@ -137,7 +137,7 @@ clean build \
         UI.info "#{command}"
         `#{command}`
         if $CHILD_STATUS.exitstatus != 0
-          UI.info "#{@pod_target}(sdk) 编译失败！".red
+          UI.info "#{@pod_target}(#{sdk}) 编译失败！".red
           return false
         end
         return true

@@ -170,7 +170,7 @@ module Pod
             created_pods = []
             pod_targets.map do |pod_target|
               begin
-                version = BinHelper.version(pod_target.pod_name, pod_target.version, @analyze_result.specifications)
+                version = BinHelper.version(pod_target.pod_name, pod_target.root_spec.version.to_s, @analyze_result.specifications)
                 # 本地库
                 if @sandbox.local?(pod_target.pod_name)
                   local_pods << pod_target.pod_name
@@ -189,13 +189,13 @@ module Pod
                   show_skip_tip("#{pod_target.pod_name} 无需编译")
                   next
                 end
-                # 非全量编译且已经有相应的二进制版本
-                if !@full_build && has_created_binary?(pod_target.pod_name, version)
+                # 非全量编译、 不在白名单中且已经有相应的二进制版本
+                if has_created_binary?(pod_target.pod_name, version)
                   created_pods << pod_target.pod_name
                   show_skip_tip("#{pod_target.pod_name}(#{version}) 已经有二进制版本了")
                   next
                 end
-                # 是否跳过编译（黑名单、白名单）
+                # 是否跳过编译（黑名单）
                 next if skip_build?(pod_target)
                 # 构建产物
                 builder = Builder.new(pod_target, @sandbox.checkout_sources)
@@ -245,9 +245,7 @@ module Pod
 
         # 是否跳过编译
         def skip_build?(pod_target)
-          return false if @full_build
-          (!@write_list.nil? && !@write_list.empty? && !@write_list.include?(pod_target.pod_name)) ||
-            (!@black_list.nil? && !@black_list.empty? && @black_list.include?(pod_target.pod_name))
+          !@black_list.nil? && !@black_list.empty? && @black_list.include?(pod_target.pod_name)
         end
 
         # 展示结果
@@ -270,7 +268,12 @@ module Pod
 
         # 是否已经有二进制版本了
         def has_created_binary?(pod_name, version)
+          # name 或 version 为nil
           return false if pod_name.nil? || version.nil?
+          # 是否全量打包
+          return false if @full_build
+          # 是否在白名单中
+          return false if !@write_list.nil? && !@write_list.empty? && @write_list.include?(pod_name)
           sources_manager = Config.instance.sources_manager
           binary_source = sources_manager.binary_source
           result = false

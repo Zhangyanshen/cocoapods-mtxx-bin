@@ -56,10 +56,10 @@ Pod::HooksManager.register('cocoapods-mtxx-bin', :source_provider) do |context, 
     end
     # 添加源码私有源 && 二进制私有源
     added_sources = sources_manager.code_source_list
-    if podfile.use_binaries? || podfile.use_binaries_selector
-      added_sources << sources_manager.binary_source
-      added_sources.reverse!
-    end
+    # if podfile.use_binaries? || podfile.use_binaries_selector
+    #   added_sources << sources_manager.binary_source
+    #   added_sources.reverse!
+    # end
     added_sources.each { |source| context.add_source(source)}
   end
 end
