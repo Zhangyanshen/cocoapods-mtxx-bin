@@ -57,10 +57,14 @@ module Pod
           :release => Set.new,
         }
 
+        podfile = Pod::Config.instance.podfile
+
         if !specs.empty? && !all_specs.empty?
           specs.each do |s|
             s.dependencies(platform).each do |dep|
-              all_specs[dep.name].each do |spec|
+              use_binary = podfile.use_binaries? && !podfile.use_source_pods.include?(dep.root_name)
+              key = use_binary ? dep.root_name : dep.name
+              all_specs[key].each do |spec|
                 if spec.non_library_specification?
                   if s.test_specification? && spec.name == s.consumer(platform).app_host_name && spec.app_specification?
                     # This needs to be handled separately, since we _don't_ want to treat this as a "normal" dependency
@@ -73,7 +77,7 @@ module Pod
                   next unless s.dependency_whitelisted_for_configuration?(dep, config)
                   set << spec
                 end
-              end unless all_specs[dep.name].nil? # 解决 dep.name = xxx/binary 时，all_specs[dep.name]返回的是nil，导致调用 each 方法报错
+              end unless all_specs[key].nil? # 解决 dep.name = xxx/binary 时，all_specs[dep.name]返回的是nil，导致调用 each 方法报错
             end
           end
         end
