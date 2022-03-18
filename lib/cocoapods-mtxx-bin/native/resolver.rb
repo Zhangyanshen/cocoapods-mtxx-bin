@@ -202,9 +202,14 @@ module Pod
               # subspec 需要特殊处理
               # 如果是源码，则获取相应 subspec 的 specification
               # 如果是二进制，则获取整个 specification
-              if !use_binary && rspec.spec.subspec?
+              # if !use_binary && rspec.spec.subspec?
+              #   specification = specification.subspec_by_name(rspec.name, false, true)
+              # end
+
+              if rspec.spec.subspec?
                 specification = specification.subspec_by_name(rspec.name, false, true)
               end
+
               # 这里可能出现分析依赖的 source 和切换后的 source 对应 specification 的 subspec 对应不上
               # 造成 subspec_by_name 返回 nil，这个是正常现象
               next unless specification

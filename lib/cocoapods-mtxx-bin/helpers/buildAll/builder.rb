@@ -243,7 +243,13 @@ ibtool \
         return if headers.empty?
         FileUtils.mkdir(header_dir) unless File.exist?(header_dir)
         headers.map do |header|
-          `cp -f #{header} #{header_dir}`
+          header_path = header
+          if header.is_a?(String)
+            header_path = header.gsub(/ /, '\ ') if header.include?(' ')
+          elsif header.is_a?(Pathname)
+            header_path = header.to_s.gsub(/ /, '\ ') if header.to_s.include?(' ')
+          end
+          `cp -f #{header_path} #{header_dir}`
         end
       end
 

@@ -27,12 +27,18 @@ module CBin
             UI.info "#{command}"
             json = `#{command}`
             UI.info json
-            error_code = JSON.parse(json)["error_code"]
-            if error_code == 0
-              Pod::UI.info "#{@pod_target.root_spec.name} (#{@pod_target.root_spec.version}) 上传成功".green
-              return true
-            else
+            begin
+              error_code = JSON.parse(json)["error_code"]
+              if error_code == 0
+                Pod::UI.info "#{@pod_target.root_spec.name} (#{@pod_target.root_spec.version}) 上传成功".green
+                return true
+              else
+                Pod::UI.info "#{@pod_target.root_spec.name} (#{@pod_target.root_spec.version}) 上传失败".red
+                return false
+              end
+            rescue JSON::ParserError => e
               Pod::UI.info "#{@pod_target.root_spec.name} (#{@pod_target.root_spec.version}) 上传失败".red
+              Pod::UI.info "#{e.to_s}".red
               return false
             end
           end

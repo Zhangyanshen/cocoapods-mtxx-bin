@@ -25,7 +25,7 @@ module Pod
           [
             %w[--clean 删除编译临时目录],
             %w[--repo-update 更新Podfile中指定的repo仓库],
-            %w[--full-build 是否全量编译]
+            %w[--full-build 是否全量打包]
           ].concat(super).uniq
         end
 
@@ -38,6 +38,8 @@ module Pod
         end
 
         def run
+          # 开始时间
+          @start_time = Time.now.to_i
           # 读取配置文件
           read_config
           # 更新repo仓库
@@ -54,9 +56,17 @@ module Pod
           post_build(results)
           # 删除编译产物
           clean_build_pods if @clean
+          # 计算耗时
+          show_cost_time
         end
 
         private
+
+        # 打印耗时
+        def show_cost_time
+          return if @start_time.nil?
+          UI.info "总耗时：#{Time.now.to_i - @start_time}s".green
+        end
 
         # 读取配置文件
         def read_config
@@ -171,6 +181,14 @@ module Pod
             pod_targets.map do |pod_target|
               begin
                 version = BinHelper.version(pod_target.pod_name, pod_target.root_spec.version.to_s, @analyze_result.specifications)
+                # 全量
+                if @full_build
+                  # 黑名单
+                  next if !@black_list.nil? && !@black_list.empty? && @black_list.include?(pod_target.pod_name)
+                else
+                  # 白名单
+                  next if !@write_list.nil? && !@write_list.empty? && !@write_list.include?(pod_target.pod_name)
+                end
                 # 本地库
                 if @sandbox.local?(pod_target.pod_name)
                   local_pods << pod_target.pod_name

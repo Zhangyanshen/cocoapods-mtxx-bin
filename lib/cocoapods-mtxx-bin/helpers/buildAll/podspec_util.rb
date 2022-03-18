@@ -65,9 +65,13 @@ module CBin
         # repo_name = 'example-private-spec-bin'
         argvs = %W[#{repo_name} #{binary_podsepc_json} --skip-import-validation --use-libraries --allow-warnings --verbose]
 
-        push = Pod::Command::Repo::Push.new(CLAide::ARGV.new(argvs))
-        push.validate!
-        push.run
+        begin
+          push = Pod::Command::Repo::Push.new(CLAide::ARGV.new(argvs))
+          push.validate!
+          push.run
+        rescue Pod::StandardError => e
+          UI.info "推送podspec：#{@pod_target} 失败，#{e.to_s}".red
+        end
       end
 
       private
@@ -83,58 +87,34 @@ module CBin
 
       # 处理subspecs
       def handle_subspecs(spec)
-        if spec && spec['subspecs'] && spec['subspecs'].size > 0
-          # 全部的subspecs
-          # spec_names = @pod_target.specs.map(&:name).select { |spec_name| spec_name.include?('/') }.map { |spec_name| spec_name.split('/')[1] }
-          # spec['subspecs'] = spec['subspecs'].select { |subspec| spec_names.include?(subspec['name']) }
-          bin_subspec = {
-            'name' => 'Binary',
-            'source_files' => spec['source_files'],
-            'public_header_files' => spec['public_header_files'],
-            'private_header_files' => spec['private_header_files'],
-            'vendored_frameworks' => spec['vendored_frameworks'],
-            'vendored_libraries' => spec['vendored_libraries'],
-            'resources' => spec['resources']
-          }
-          spec['subspecs'] << bin_subspec
-          spec['subspecs'].map do |subspec|
-            next if subspec['name'] == 'Binary'
-            # 处理单个subspec
-            handle_single_subspec(subspec)
-            # 递归处理subspec
-            recursive_handle_subspecs(subspec['subspecs'])
-          end
-        end
+        spec['subspecs'].map do |subspec|
+          # 处理单个subspec
+          handle_single_subspec(subspec, spec)
+          # 递归处理subspec
+          recursive_handle_subspecs(subspec['subspecs'], spec)
+        end if spec && spec['subspecs']
       end
 
       # 递归处理subspecs
-      def recursive_handle_subspecs(subspecs)
-        return unless subspecs && subspecs.size > 0
+      def recursive_handle_subspecs(subspecs, spec)
         subspecs.map do |s|
           # 处理单个subspec
-          handle_single_subspec(s)
+          handle_single_subspec(s, spec)
           # 递归处理
-          recursive_handle_subspecs(s['subspecs'])
-        end
+          recursive_handle_subspecs(s['subspecs'], spec)
+        end if subspecs
       end
 
       # 处理单个subspec
-      def handle_single_subspec(subspec)
-        subspec.delete('source_files')
-        subspec.delete('public_header_files')
-        subspec.delete('project_header_files')
-        subspec.delete('private_header_files')
-        subspec.delete('vendored_frameworks')
-        subspec.delete('vendored_libraries')
-        subspec.delete('resource_bundles')
-        subspec.delete('resources')
-        subspec.delete('exclude_files')
-        subspec.delete('preserve_paths')
-        if subspec['dependencies']
-          subspec['dependencies']["#{@pod_target.pod_name}/Binary"] = []
-        else
-          subspec['dependencies'] = {"#{@pod_target.pod_name}/Binary": []}
-        end
+      def handle_single_subspec(subspec, spec)
+        subspec['source_files'] = spec['source_files']
+        subspec['public_header_files'] = spec['public_header_files']
+        subspec['private_header_files'] = spec['private_header_files']
+        subspec['vendored_frameworks'] = spec['vendored_frameworks']
+        subspec['vendored_libraries'] = spec['vendored_libraries']
+        subspec['resources'] = spec['resources']
+        # 删除无用字段
+        delete_unused(subspec)
       end
 
       def source
