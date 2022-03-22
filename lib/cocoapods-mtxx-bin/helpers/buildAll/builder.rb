@@ -233,7 +233,7 @@ ibtool \
           header_dir = headers_dir
           if @pod_target.uses_swift?
             umbrella_header = "#{product_dir}/#{iphoneos}/#{@pod_target}/#{@pod_target}-umbrella.h"
-            swift_header = "#{product_dir}/#{iphoneos}/#{@pod_target}/Swift\\ Compatibility\\ Header/#{@pod_target.product_module_name}-Swift.h"
+            swift_header = "#{product_dir}/#{iphoneos}/#{@pod_target}/Swift Compatibility Header/#{@pod_target.product_module_name}-Swift.h"
             headers.concat([umbrella_header, swift_header])
           end
         else
