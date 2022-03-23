@@ -8,6 +8,7 @@ require 'cocoapods-mtxx-bin/native/installation_options'
 require 'cocoapods-mtxx-bin/gem_version'
 require 'cocoapods-mtxx-bin/command/bin/archive'
 require 'cocoapods-mtxx-bin/helpers/buildAll/bin_helper'
+require 'cocoapods-mtxx-bin/config/config'
 
 module Pod
   class Resolver
@@ -90,8 +91,8 @@ module Pod
 
     # 读取黑名单
     def read_black_list
-      project_root = Pod::Config.instance.project_root
-      config_file = File.join(project_root, 'BinConfig.yaml')
+      binary_dir = CBin.config.binary_dir
+      config_file = File.join(binary_dir, 'BinConfig.yaml')
       return nil unless File.exist?(config_file)
       config = YAML.load(File.open(config_file))
       return nil if config.nil?
