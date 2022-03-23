@@ -199,13 +199,6 @@ module Pod
 
               UI.message "specification = #{specification}"
               # 组件是 subspec
-              # subspec 需要特殊处理
-              # 如果是源码，则获取相应 subspec 的 specification
-              # 如果是二进制，则获取整个 specification
-              # if !use_binary && rspec.spec.subspec?
-              #   specification = specification.subspec_by_name(rspec.name, false, true)
-              # end
-
               if rspec.spec.subspec?
                 specification = specification.subspec_by_name(rspec.name, false, true)
               end

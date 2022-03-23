@@ -1,5 +1,6 @@
 require 'cocoapods-mtxx-bin/native/sources_manager'
 require 'cocoapods-mtxx-bin/command/bin/repo/update'
+require 'cocoapods-mtxx-bin/config/config'
 require 'cocoapods/user_interface'
 require 'yaml'
 
@@ -44,7 +45,7 @@ Pod::HooksManager.register('cocoapods-mtxx-bin', :source_provider) do |context, 
   podfile = Pod::Config.instance.podfile
   if podfile
     # 读取配置文件
-    project_root = Pod::Config.instance.project_root
+    project_root = CBin.config.binary_dir
     config_file = File.join(project_root, 'BinConfig.yaml')
     if File.exist?(config_file)
       config = YAML.load(File.open(config_file))

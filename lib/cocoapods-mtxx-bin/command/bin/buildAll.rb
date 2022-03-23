@@ -2,6 +2,7 @@ require 'cocoapods-mtxx-bin/helpers/buildAll/builder'
 require 'cocoapods-mtxx-bin/helpers/buildAll/podspec_util'
 require 'cocoapods-mtxx-bin/helpers/buildAll/zip_file_helper'
 require 'cocoapods-mtxx-bin/helpers/buildAll/bin_helper'
+require 'cocoapods-mtxx-bin/config/config'
 require 'yaml'
 require 'digest'
 
@@ -71,7 +72,7 @@ module Pod
         # 读取配置文件
         def read_config
           UI.title "Read config from file `BinConfig.yaml`".green do
-            config_file = File.join(Dir.pwd, 'BinConfig.yaml')
+            config_file = File.join(CBin.config.binary_dir, 'BinConfig.yaml')
             return unless File.exist?(config_file)
             config = YAML.load(File.open(config_file))
             return if config.nil?

@@ -11,7 +11,7 @@ module Pod
 
         def self.options
           [
-            ['--bin-url=URL', '配置文件地址，直接从此地址下载配置文件'],
+            %w[--bin-url=URL 配置文件地址，直接从此地址下载配置文件],
             ['--update-sources', '更新源码私有源配置 bin_dev.yml 中的 code_repo_url_list 配置,支持多私有源,多个私有源用分号区分  example：git@techgit.meitu.com:iMeituPic/mtsourcespecs.git;git@techgit.meitu.com:iosmodules/specs.git;https://github.com/CocoaPods/Specs.git']
           ].concat(super)
         end
