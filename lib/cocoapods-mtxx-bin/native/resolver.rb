@@ -7,6 +7,8 @@ require 'cocoapods-mtxx-bin/native/sources_manager'
 require 'cocoapods-mtxx-bin/native/installation_options'
 require 'cocoapods-mtxx-bin/gem_version'
 require 'cocoapods-mtxx-bin/command/bin/archive'
+require 'cocoapods-mtxx-bin/helpers/buildAll/bin_helper'
+require 'cocoapods-mtxx-bin/config/config'
 
 module Pod
   class Resolver
@@ -87,16 +89,66 @@ module Pod
       end
     end
 
+    # 读取黑名单
+    def read_black_list
+      binary_dir = CBin.config.binary_dir
+      config_file = File.join(binary_dir, 'BinConfig.yaml')
+      return nil unless File.exist?(config_file)
+      config = YAML.load(File.open(config_file))
+      return nil if config.nil?
+      install_config = config['install_config']
+      return nil if install_config.nil?
+      install_config['black_list']
+    end
+
     # >= 1.4.0 才有 resolver_specs_by_target 以及 ResolverSpecification
     # >= 1.5.0 ResolverSpecification 才有 source，供 install 或者其他操作时，输入 source 变更
     #
     if Pod.match_version?('~> 1.4')
+      old_resolve = instance_method(:resolve)
+      define_method(:resolve) do
+        dependencies = @podfile_dependency_cache.target_definition_list.flat_map do |target|
+          @podfile_dependency_cache.target_definition_dependencies(target).each do |dep|
+            next unless target.platform
+            @platforms_by_dependency[dep].push(target.platform)
+          end
+        end.uniq
+        @platforms_by_dependency.each_value(&:uniq!)
+
+        # 遍历locked_dependencies，将二进制版本号的最后一位删掉
+        locked_dependencies.each do |value|
+          next if value.nil?
+          # 获取 Pod::Dependency
+          dep = value.payload
+          next if dep.external_source
+          # 修改版本号限制
+          requirements = dep.requirement.as_list.map do |req|
+            req_arr = req.split('.').delete_if { |r| r.include?('bin') }
+            req_arr.join('.')
+          end
+          # 重新生成 Pod::Dependency
+          dep = Dependency.new(dep.name, requirements, {:source => dep.podspec_repo, :external_source => dep.external_source})
+          value.payload = dep
+        end
+
+        @activated = Molinillo::Resolver.new(self, self).resolve(dependencies, locked_dependencies)
+        resolver_specs_by_target
+      rescue Molinillo::ResolverError => e
+        handle_resolver_error(e)
+      end
+
       old_resolver_specs_by_target = instance_method(:resolver_specs_by_target)
       define_method(:resolver_specs_by_target) do
         specs_by_target = old_resolver_specs_by_target.bind(self).call
 
         sources_manager = Config.instance.sources_manager
         use_source_pods = podfile.use_source_pods
+
+        # 从BinConfig读取black_list
+        black_list = read_black_list
+        use_source_pods.concat(black_list).uniq! unless black_list.nil?
+
+        specifications = specs_by_target.values.flatten.map(&:spec).uniq
 
         missing_binary_specs = []
         specs_by_target.each do |target, rspecs|
@@ -125,19 +177,20 @@ module Pod
             use_binary = use_binary_rspecs.include?(rspec)
             if use_binary
               source = sources_manager.binary_source
+              spec_version = CBin::BuildAll::BinHelper.version(rspec.root.name, rspec.spec.version, specifications)
             else
               # 获取podfile中的source
-              podfile_sources = podfile.sources.map { |source| sources_manager.source_with_name_or_url(source) }
-              source = (sources_manager.code_source_list + podfile_sources).select do |s|
+              podfile_sources = podfile.sources.uniq.map { |source| sources_manager.source_with_name_or_url(source) }
+              source = (sources_manager.code_source_list + podfile_sources).uniq.select do |s|
                 s.search(rspec.root.name)
               end.first
+              spec_version = rspec.spec.version
             end
-
-            spec_version = rspec.spec.version
 
             raise Informative, "#{rspec.root.name}(#{spec_version})的podspec未找到，请执行 pod repo update 或添加相应的source源" unless source
 
-            UI.message "- 开始处理 #{rspec.spec.name}(#{spec_version}) 组件."
+            UI.message "------------------- 分界线 -----------------------"
+            UI.message "- 开始处理 #{rspec.spec.name}(#{spec_version}) 组件（#{use_binary ? '二进制' : '源码'}）."
 
             begin
               # 从新 source 中获取 spec,在bin archive中会异常，因为找不到
@@ -145,11 +198,12 @@ module Pod
 
               raise Informative, "Specification of #{rspec.root.name}(#{spec_version}) is nil" unless specification
 
-              UI.message "#{rspec.root.name} #{spec_version} \r\n specification =#{specification} "
+              UI.message "specification = #{specification}"
               # 组件是 subspec
               if rspec.spec.subspec?
                 specification = specification.subspec_by_name(rspec.name, false, true)
               end
+
               # 这里可能出现分析依赖的 source 和切换后的 source 对应 specification 的 subspec 对应不上
               # 造成 subspec_by_name 返回 nil，这个是正常现象
               next unless specification
@@ -159,18 +213,17 @@ module Pod
                              else
                                rspec.used_by_tests_only
                              end
-              # used_by_only = rspec.respond_to?(:used_by_tests_only) ? rspec.used_by_tests_only : rspec.used_by_non_library_targets_only
               # 组装新的 rspec ，替换原 rspec
               rspec = if Pod.match_version?('~> 1.4.0')
                         ResolverSpecification.new(specification, used_by_only)
                       else
                         ResolverSpecification.new(specification, used_by_only, source)
                       end
-              UI.message "组装新的 rspec ，替换原 rspec #{rspec.root.name} #{spec_version} \r\n specification =#{specification} \r\n #{rspec} "
+              UI.message "组装新的 rspec ，替换原 rspec #{rspec.root.name} (#{spec_version}) specification = #{specification} #{rspec} "
             rescue Pod::StandardError => e
               # 没有从新的 source 找到对应版本组件，直接返回原 rspec
               missing_binary_specs << rspec.spec if use_binary
-              # missing_binary_specs << rspec.spec
+              UI.message "【#{rspec.spec.name} | #{rspec.spec.version}】组件无对应源码版本 , 将采用二进制版本依赖.".red unless use_binary
               rspec
             end
             rspec
@@ -179,7 +232,7 @@ module Pod
 
         if missing_binary_specs.any?
           missing_binary_specs.uniq.each do |spec|
-            UI.message "【#{spec.name} | #{spec.version}】组件无对应二进制版本 , 将采用源码依赖."
+            UI.message "【#{spec.name} | #{spec.version}】组件无对应二进制版本 , 将采用源码依赖." unless spec.root.source[:type] == 'zip'
           end
           # 下面的代码为了实现 auto 命令的 --all-make
           Pod::Command::Bin::Archive.missing_binary_specs(missing_binary_specs)

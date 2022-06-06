@@ -84,6 +84,8 @@ module Pod
 
           find_dependency = find_dependency(name)
 
+          raise "未找到 #{name} 的依赖" if find_dependency.nil?
+
           spec = fetch_external_source(find_dependency, @config.podfile,@config.lockfile, @config.sandbox,true )
 
           download_request = Pod::Downloader::Request.new(:name => name, :spec => spec)
@@ -163,7 +165,7 @@ module Pod
           lib_path = File.join(dir,lib_name)
 
           unless File.exist?(lib_path)
-            lib_path = File.join(dir.children.first,lib_name)
+            lib_path = File.join(dir.children.first, name)
           end
 
           lib_path

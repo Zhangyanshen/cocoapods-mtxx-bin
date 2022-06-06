@@ -57,9 +57,13 @@ module Pod
           :release => Set.new,
         }
 
+        podfile = Pod::Config.instance.podfile
+
         if !specs.empty? && !all_specs.empty?
           specs.each do |s|
             s.dependencies(platform).each do |dep|
+              # use_binary = podfile.use_binaries? && !podfile.use_source_pods.include?(dep.root_name)
+              # key = use_binary ? dep.root_name : dep.name
               all_specs[dep.name].each do |spec|
                 if spec.non_library_specification?
                   if s.test_specification? && spec.name == s.consumer(platform).app_host_name && spec.app_specification?

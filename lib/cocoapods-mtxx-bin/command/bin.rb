@@ -8,6 +8,8 @@ require 'cocoapods-mtxx-bin/command/bin/install'
 # require 'cocoapods-mtxx-bin/command/bin/imy'
 require 'cocoapods-mtxx-bin/command/bin/repo'
 require 'cocoapods-mtxx-bin/command/bin/spec'
+require 'cocoapods-mtxx-bin/command/bin/buildAll'
+require 'cocoapods-mtxx-bin/command/bin/upload'
 require 'cocoapods-mtxx-bin/helpers'
 # require 'cocoapods-mtxx-bin/native'
 

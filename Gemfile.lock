@@ -1,10 +1,10 @@
 PATH
   remote: .
   specs:
-    cocoapods-mtxx-bin (0.0.1)
-      cocoapods (= 1.11.2)
+    cocoapods-mtxx-bin (0.0.7)
+      cocoapods (>= 1.10.2, <= 1.11.2)
       cocoapods-generate (~> 2.0.1)
-      parallel
+      parallel (~> 1.22.0)
 
 GEM
   remote: https://rubygems.org/
@@ -86,7 +86,7 @@ GEM
     nanaimo (0.3.0)
     nap (1.1.0)
     netrc (0.11.0)
-    parallel (1.21.0)
+    parallel (1.22.1)
     prettybacon (0.0.2)
       bacon (~> 1.2)
     public_suffix (4.0.6)

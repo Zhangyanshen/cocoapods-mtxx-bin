@@ -13,12 +13,12 @@ module CBin
     def template_hash
       {
           'configuration_env' => { description: '编译环境', default: 'dev', selection: %w[dev debug_iphoneos release_iphoneos] },
-          'code_repo_url_list' => { description: '源码私有源 Git 地址 ,支持多私有源,多个私有源用分号区分', default: 'git@techgit.meitu.com:iMeituPic/mtsourcespecs.git' },
+          'code_repo_url_list' => { description: '源码私有源 Git 地址，多个私有源用分号区分', default: 'git@techgit.meitu.com:iMeituPic/mtsourcespecs.git' },
           'binary_repo_url' => { description: '二进制私有源 Git 地址', default: 'git@techgit.meitu.com:iMeituPic/mtbinaryspecs.git' },
-          'binary_upload_url' => { description: '二进制下载地址，内部会依次传入组件名称与版本', default: 'http://pre.intapi.xiuxiu.meitu.com/internal/file/upload.json' },
+          'binary_upload_url' => { description: '二进制文件上传地址', default: 'http://pre.intapi.xiuxiu.meitu.com/internal/file/upload.json' },
           # 'binary_type' => { description: '二进制打包类型', default: 'framework', selection: %w[framework library] },
-          'binary_download_url' => { description: '二进制下载地址，内部会依次传入组件名称与版本，替换字符串中的 %s', default: 'https://manhattan-test.obs.cn-north-4.myhuaweicloud.com:443/ios/binary' },
-          'download_file_type' => { description: '下载二进制文件类型', default: 'zip', selection: %w[zip tgz tar tbz txz dmg] }
+          'binary_download_url' => { description: '二进制文件下载地址，内部会依次传入组件名称与版本，替换字符串中的 %s', default: 'https://manhattan-test.obs.cn-north-4.myhuaweicloud.com:443/ios/binary' },
+          'download_file_type' => { description: '二进制文件类型', default: 'zip', selection: %w[zip tgz tar tbz txz dmg] }
       }
     end
 
@@ -36,12 +36,22 @@ module CBin
         raise "===== #{configuration_env} %w[dev debug_iphoneos release_iphoneos]===="
       end
 
-      File.expand_path("#{Pod::Config.instance.home_dir}/#{file}")
+      # File.expand_path("#{Pod::Config.instance.home_dir}/#{file}")
+      File.expand_path("#{binary_dir}/#{file}")
     end
 
     def config_file_with_configuration_env_list(configuration_env)
       file = config_dev_file
-      File.expand_path("#{Pod::Config.instance.home_dir}/#{file}")
+      # File.expand_path("#{Pod::Config.instance.home_dir}/#{file}")
+      File.expand_path("#{binary_dir}/#{file}")
+    end
+
+    def binary_dir
+      @binary_dir ||= begin
+                        binary_dir = "#{Pod::Config.instance.project_root}/binary"
+                        FileUtils.mkdir(binary_dir) unless File.exist?(binary_dir)
+                        binary_dir
+                      end
     end
 
     def configuration_env
@@ -122,8 +132,6 @@ module CBin
 
     def config
       @config ||= begin
-                    msg = "cocoapods-mtxx-bin #{CBin::VERSION} 版本"
-                    puts "\033[44m#{msg}\033[0m\n"
                     @config = OpenStruct.new load_config
         validate!
         @config

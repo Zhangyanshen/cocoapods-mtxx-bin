@@ -71,6 +71,7 @@ module CBin
               Pod::UI.info "#{@spec.name} (#{@spec.version}) 上传成功".green
             else
               Pod::UI.info "#{@spec.name} (#{@spec.version}) 上传失败".red
+              raise Informative, "#{@spec.name} (#{@spec.version}) 上传失败"
             end
           end
         end
