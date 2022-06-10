@@ -19,7 +19,7 @@ module Pod
 
         self.summary = '根据壳工程打包所有依赖组件为静态库（static framework）'
         self.description = <<-DESC
-          #{self.summary}
+          #{summary}
         DESC
 
         def self.options
@@ -31,9 +31,9 @@ module Pod
         end
 
         def initialize(argv)
-          @clean = argv.flag?('clean', false )
-          @repo_update = argv.flag?('repo-update', false )
-          @full_build = argv.flag?('full-build', false )
+          @clean = argv.flag?('clean', false)
+          @repo_update = argv.flag?('repo-update', false)
+          @full_build = argv.flag?('full-build', false)
           @base_dir = "#{Pathname.pwd}/build_pods"
           super
         end
@@ -71,10 +71,10 @@ module Pod
 
         # 读取配置文件
         def read_config
-          UI.title "Read config from file `BinConfig.yaml`".green do
+          UI.title 'Read config from file `BinConfig.yaml`'.green do
             config_file = File.join(CBin.config.binary_dir, 'BinConfig.yaml')
             return unless File.exist?(config_file)
-            config = YAML.load(File.open(config_file))
+            config = YAML.safe_load(File.open(config_file))
             return if config.nil?
             build_config = config['build_config']
             return if build_config.nil?
@@ -87,38 +87,44 @@ module Pod
 
         # 更新repo仓库
         def repo_update
-          UI.title "Repo update".green do
-            return if podfile.nil?
-            sources_manager = Pod::Config.instance.sources_manager
-            podfile.sources.uniq.map { |src|
-              # next if src.include?(CDN) || src.include?(MASTER_HTTP) || src.include?(MASTER_SSH)
-              next unless src.include?(MT_REPO)
-              UI.message "Update repo: #{src}"
-              source = sources_manager.source_with_name_or_url(src)
-              source.update(false )
-            }
-          end if @repo_update
+          if @repo_update
+            UI.title 'Repo update'.green do
+              return if podfile.nil?
+              sources_manager = Pod::Config.instance.sources_manager
+              podfile.sources.uniq.map do |src|
+                # next if src.include?(CDN) || src.include?(MASTER_HTTP) || src.include?(MASTER_SSH)
+                next unless src.include?(MT_REPO)
+                UI.message "Update repo: #{src}"
+                source = sources_manager.source_with_name_or_url(src)
+                source.update(false)
+              end
+            end
+          end
         end
 
         # 执行pre build
         def pre_build
-          UI.title "Execute the command of pre build".green do
-            system(@pre_build)
-          end if @pre_build
+          if @pre_build
+            UI.title 'Execute the command of pre build'.green do
+              system(@pre_build)
+            end
+          end
         end
 
         # 执行post build
-        def post_build(results)
-          UI.title "Execute the command of post build".green do
-            system(@post_build)
-          end if @post_build
+        def post_build(_results)
+          if @post_build
+            UI.title 'Execute the command of post build'.green do
+              system(@post_build)
+            end
+          end
         end
 
         # 获取 podfile
         def podfile
           @podfile ||= begin
-                         podfile_path = File.join(Pathname.pwd,"Podfile")
-                         raise "Podfile不存在" unless File.exist?(podfile_path)
+                         podfile_path = File.join(Pathname.pwd, 'Podfile')
+                         raise 'Podfile不存在' unless File.exist?(podfile_path)
                          sources_manager = Pod::Config.instance.sources_manager
                          podfile = Podfile.from_file(Pathname.new(podfile_path))
                          podfile_hash = podfile.to_hash
@@ -132,8 +138,8 @@ module Pod
         # 获取 podfile.lock
         def lockfile
           @lockfile ||= begin
-                          lock_path = File.join(Pathname.pwd,"Podfile.lock")
-                          raise "Podfile.lock不存在，请执行pod install" unless File.exist?(lock_path)
+                          lock_path = File.join(Pathname.pwd, 'Podfile.lock')
+                          raise 'Podfile.lock不存在，请执行pod install' unless File.exist?(lock_path)
                           Lockfile.from_file(Pathname.new(lock_path))
                         end
         end
@@ -141,30 +147,30 @@ module Pod
         # 获取 sandbox
         def sandbox
           @sandbox ||= begin
-                         sandbox_path = File.join(Pathname.pwd, "Pods")
-                         raise "Pods文件夹不存在，请执行pod install" unless File.exist?(sandbox_path)
+                         sandbox_path = File.join(Pathname.pwd, 'Pods')
+                         raise 'Pods文件夹不存在，请执行pod install' unless File.exist?(sandbox_path)
                          Pod::Sandbox.new(sandbox_path)
                        end
         end
 
         # 根据podfile和podfile.lock分析依赖
         def analyse
-          UI.title "Analyze dependencies".green do
+          UI.title 'Analyze dependencies'.green do
             analyzer = Pod::Installer::Analyzer.new(
               sandbox,
               podfile,
               lockfile
             )
-            analyzer.analyze(true )
+            analyzer.analyze(true)
           end
         end
 
         # 删除编译产物
         def clean_build_pods
-          UI.title "Clean build pods".green do
-            build_path = Dir.pwd + "/build"
+          UI.title 'Clean build pods'.green do
+            build_path = Dir.pwd + '/build'
             FileUtils.rm_rf(build_path) if File.exist?(build_path)
-            build_pods_path = Dir.pwd + "/build_pods"
+            build_pods_path = Dir.pwd + '/build_pods'
             FileUtils.rm_rf(build_pods_path) if File.exist?(build_pods_path)
           end
         end
@@ -269,14 +275,14 @@ module Pod
 
         # 展示结果
         def show_results(results)
-          UI.title "打包结果：".green do
-            UI.info "——————————————————————————————————".green
-            UI.info "|#{"Type".center(20)}|#{"Count".center(11)}|".green
-            UI.info "——————————————————————————————————".green
+          UI.title '打包结果：'.green do
+            UI.info '——————————————————————————————————'.green
+            UI.info "|#{'Type'.center(20)}|#{'Count'.center(11)}|".green
+            UI.info '——————————————————————————————————'.green
             results.each do |key, value|
               UI.info "|#{key.center(20)}|#{value.size.to_s.center(11)}|".green
             end
-            UI.info "——————————————————————————————————".green
+            UI.info '——————————————————————————————————'.green
 
             # 打印出失败的 target
             unless results['Fail'].empty?
@@ -304,7 +310,6 @@ module Pod
           end
           result
         end
-
       end
     end
   end
