@@ -9,6 +9,7 @@ require 'cocoapods-mtxx-bin/command/bin/install'
 require 'cocoapods-mtxx-bin/command/bin/repo'
 require 'cocoapods-mtxx-bin/command/bin/spec'
 require 'cocoapods-mtxx-bin/command/bin/buildAll'
+require 'cocoapods-mtxx-bin/command/bin/outputSource'
 require 'cocoapods-mtxx-bin/command/bin/upload'
 require 'cocoapods-mtxx-bin/helpers'
 # require 'cocoapods-mtxx-bin/native'
@@ -42,7 +43,7 @@ module Pod
       self.summary = '组件二进制化插件'
       self.description = <<-DESC.strip_heredoc
         组件二进制化插件
-        
+
         利用源码私有源与二进制私有源实现对组件依赖类型的切换
       DESC
 

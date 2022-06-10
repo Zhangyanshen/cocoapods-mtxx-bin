@@ -10,6 +10,8 @@ module CBin
         specs = specifications.map(&:name).select { |spec|
           spec.include?(pod_name) && !spec.include?('/Binary')
         }.sort!
+        xcode_version = `xcodebuild -version`.split(' ').join('')
+        specs << xcode_version
         specs_str = specs.join('')
         "#{original_version}.bin#{Digest::MD5.hexdigest(specs_str)[0,6]}"
       end
