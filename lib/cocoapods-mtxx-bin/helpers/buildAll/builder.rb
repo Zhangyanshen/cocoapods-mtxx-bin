@@ -94,12 +94,16 @@ module CBin
         "#{@base_dir}/#{@pod_target}/Temp"
       end
 
+      def configuration
+        "Debug"
+      end
+
       def iphoneos
-        "Release-iphoneos"
+        "#{configuration}-iphoneos"
       end
 
       def iphonesimulator
-        "Release-iphonesimulator"
+        "#{configuration}-iphonesimulator"
       end
 
       # 需要排除的资源文件后缀
@@ -130,7 +134,7 @@ CONFIGURATION_TEMP_DIR=#{temp_dir} \
 BUILD_ROOT=#{product_dir} \
 BUILD_DIR=#{product_dir} \
 clean build \
--configuration Release \
+-configuration #{configuration} \
 -target #{@pod_target} \
 -project #{project}
         BUILD
