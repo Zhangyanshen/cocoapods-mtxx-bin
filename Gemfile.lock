@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cocoapods-mtxx-bin (0.0.8)
+    cocoapods-mtxx-bin (0.0.9)
       cocoapods (>= 1.10.2, <= 1.11.2)
       cocoapods-generate (~> 2.0.1)
       parallel (~> 1.22.0)

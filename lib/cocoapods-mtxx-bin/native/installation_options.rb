@@ -19,7 +19,10 @@ module Pod
       env_option :install_with_multi_threads, false
 
       # 是否多进程执行 update_repositories
-      env_option :update_source_with_multi_processes, false
+      env_option :update_source_with_multi_threads, false
+
+      # 并发执行个数
+      option :multi_threads_count, 4
     end
   end
 end

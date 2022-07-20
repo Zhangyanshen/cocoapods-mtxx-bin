@@ -189,8 +189,8 @@ module Pod
 
             raise Informative, "#{rspec.root.name}(#{spec_version})的podspec未找到，请执行 pod repo update 或添加相应的source源" unless source
 
-            UI.message "------------------- 分界线 -----------------------"
-            UI.message "- 开始处理 #{rspec.spec.name}(#{spec_version}) 组件（#{use_binary ? '二进制' : '源码'}）."
+            # UI.message "------------------- 分界线 -----------------------"
+            # UI.message "- 开始处理 #{rspec.spec.name}(#{spec_version}) 组件（#{use_binary ? '二进制' : '源码'}）."
 
             begin
               # 从新 source 中获取 spec,在bin archive中会异常，因为找不到
@@ -219,11 +219,11 @@ module Pod
                       else
                         ResolverSpecification.new(specification, used_by_only, source)
                       end
-              UI.message "组装新的 rspec ，替换原 rspec #{rspec.root.name} (#{spec_version}) specification = #{specification} #{rspec} "
+              # UI.message "组装新的 rspec ，替换原 rspec #{rspec.root.name} (#{spec_version}) specification = #{specification} #{rspec} "
             rescue Pod::StandardError => e
               # 没有从新的 source 找到对应版本组件，直接返回原 rspec
               missing_binary_specs << rspec.spec if use_binary
-              UI.message "【#{rspec.spec.name} | #{rspec.spec.version}】组件无对应源码版本 , 将采用二进制版本依赖.".red unless use_binary
+              # UI.message "【#{rspec.spec.name} | #{rspec.spec.version}】组件无对应源码版本 , 将采用二进制版本依赖.".red unless use_binary
               rspec
             end
             rspec
@@ -232,7 +232,7 @@ module Pod
 
         if missing_binary_specs.any?
           missing_binary_specs.uniq.each do |spec|
-            UI.message "【#{spec.name} | #{spec.version}】组件无对应二进制版本 , 将采用源码依赖." unless spec.root.source[:type] == 'zip'
+            # UI.message "【#{spec.name} | #{spec.version}】组件无对应二进制版本 , 将采用源码依赖." unless spec.root.source[:type] == 'zip'
           end
           # 下面的代码为了实现 auto 命令的 --all-make
           Pod::Command::Bin::Archive.missing_binary_specs(missing_binary_specs)

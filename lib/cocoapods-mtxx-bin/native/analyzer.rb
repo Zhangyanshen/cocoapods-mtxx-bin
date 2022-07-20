@@ -1,11 +1,30 @@
 
-
 require 'parallel'
 require 'cocoapods'
 
 module Pod
   class Installer
     class Analyzer
+      alias old_fetch_external_sources fetch_external_sources
+      def fetch_external_sources(podfile_state)
+        verify_no_pods_with_different_sources!
+        deps = dependencies_to_fetch(podfile_state)
+        pods = pods_to_fetch(podfile_state)
+        return if deps.empty?
+        UI.section 'Fetching external sources' do
+          if installation_options.install_with_multi_threads
+            thread_count = installation_options.multi_threads_count
+            Parallel.each(deps.sort, in_threads: thread_count) do |dependency|
+              fetch_external_source(dependency, !pods.include?(dependency.root_name))
+            end
+          else
+            deps.sort.each do |dependency|
+              fetch_external_source(dependency, !pods.include?(dependency.root_name))
+            end
+          end
+        end
+      end
+
       # > 1.6.0
       # all_specs[dep.name] 为 nil 会崩溃
       # 主要原因是 all_specs 分析错误
@@ -32,15 +51,16 @@ module Pod
       #
       alias old_update_repositories update_repositories
       def update_repositories
-        if installation_options.update_source_with_multi_processes
+        if installation_options.update_source_with_multi_threads
           # 并发更新私有源
           # 这里多线程会导致 pod update 额外输出 --verbose 的内容
           # 不知道为什么？
-          Parallel.each(sources.uniq(&:url), in_processes: 4) do |source|
-            if source.git?
-              config.sources_manager.update(source.name, true)
+          thread_count = installation_options.multi_threads_count
+          Parallel.each(sources.uniq(&:url), in_threads: thread_count) do |source|
+            if source.updateable?
+              sources_manager.update(source.name, true)
             else
-              UI.message "Skipping `#{source.name}` update because the repository is not a git source repository."
+              UI.message "Skipping `#{source.name}` update because the repository is not an updateable repository."
             end
           end
           @specs_updated = true
