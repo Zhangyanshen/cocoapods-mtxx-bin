@@ -139,7 +139,8 @@ clean build \
 -project #{project}
         BUILD
         UI.info "#{command}"
-        `#{command}`
+        output = `#{command}`
+        puts output
         if $CHILD_STATUS.exitstatus != 0
           UI.info "#{@pod_target}(#{sdk}) 编译失败！".red
           return false
